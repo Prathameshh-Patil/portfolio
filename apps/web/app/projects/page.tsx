@@ -5,8 +5,6 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { getProjects, type Project } from "@/lib/api";
 
 export const metadata = { title: "Projects" };
-export const dynamic = "force-dynamic";
-
 export default async function ProjectsPage() {
   let projects: Project[] | null = null;
   try {

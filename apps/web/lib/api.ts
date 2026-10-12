@@ -18,6 +18,23 @@ export type Project = {
   updatedAt: string;
 };
 
+export type PublicationStatus = "published" | "accepted" | "under_review" | "preprint";
+
+export type Publication = {
+  id: number;
+  title: string;
+  authors: string;
+  venue: string | null;
+  year: number | null;
+  status: PublicationStatus;
+  url: string | null;
+  summary: string;
+  visible: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type ContactInput = { name: string; email: string; subject?: string; body: string; website?: string };
 
 // Every non-2xx response becomes an ApiError, so callers can branch on `status` (404, 429, ...).
@@ -54,6 +71,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 // ---- Public (used by Server Components) ----
 export const getProjects = () => request<Project[]>("/api/projects");
 export const getProject = (slug: string) => request<Project>(`/api/projects/${encodeURIComponent(slug)}`);
+export const getPublications = () => request<Publication[]>("/api/publications");
 
 // ---- Public (used from the browser) ----
 export const recordView = (slug: string) =>

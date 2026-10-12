@@ -2,7 +2,7 @@ import { Router } from "express";
 import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
-import { messages, projects } from "../db/schema.js";
+import { messages, projects, publicationStatus, publications } from "../db/schema.js";
 import { asyncHandler, HttpError } from "../lib/errors.js";
 
 const idParam = z.object({ id: z.coerce.number().int().positive() });
@@ -28,6 +28,24 @@ const createProjectSchema = projectFields.extend({
   sortOrder: z.number().int().default(0),
 });
 const updateProjectSchema = projectFields.partial();
+
+// Same pattern as projects: required fields for PATCH-able data, defaults only on create.
+const publicationFields = z.object({
+  title: z.string().trim().min(1).max(300),
+  authors: z.string().trim().min(1).max(1000),
+  venue: z.string().trim().max(200).nullable().optional(),
+  year: z.number().int().min(1900).max(2100).nullable().optional(),
+  status: z.enum(publicationStatus.enumValues),
+  url: z.url().nullable().optional(),
+  summary: z.string().trim().min(1).max(2000),
+  visible: z.boolean(),
+  sortOrder: z.number().int(),
+});
+const createPublicationSchema = publicationFields.extend({
+  visible: z.boolean().default(true),
+  sortOrder: z.number().int().default(0),
+});
+const updatePublicationSchema = publicationFields.partial();
 
 const pageQuery = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -152,6 +170,49 @@ export function adminRouter(db: Db) {
       const { id } = idParam.parse(req.params);
       const [row] = await db.delete(projects).where(eq(projects.id, id)).returning({ id: projects.id });
       if (!row) throw new HttpError(404, "Project not found");
+      res.status(204).end();
+    }),
+  );
+
+  // ---- Publications (including hidden ones) ----
+  router.get(
+    "/publications",
+    asyncHandler(async (_req, res) => {
+      res.json(await db.select().from(publications).orderBy(asc(publications.sortOrder), asc(publications.id)));
+    }),
+  );
+
+  router.post(
+    "/publications",
+    asyncHandler(async (req, res) => {
+      const data = createPublicationSchema.parse(req.body);
+      const [row] = await db.insert(publications).values(data).returning();
+      res.status(201).json(row);
+    }),
+  );
+
+  router.patch(
+    "/publications/:id",
+    asyncHandler(async (req, res) => {
+      const { id } = idParam.parse(req.params);
+      const data = updatePublicationSchema.parse(req.body);
+      if (Object.keys(data).length === 0) throw new HttpError(400, "Nothing to update");
+      const [row] = await db
+        .update(publications)
+        .set({ ...data, updatedAt: sql`now()` })
+        .where(eq(publications.id, id))
+        .returning();
+      if (!row) throw new HttpError(404, "Publication not found");
+      res.json(row);
+    }),
+  );
+
+  router.delete(
+    "/publications/:id",
+    asyncHandler(async (req, res) => {
+      const { id } = idParam.parse(req.params);
+      const [row] = await db.delete(publications).where(eq(publications.id, id)).returning({ id: publications.id });
+      if (!row) throw new HttpError(404, "Publication not found");
       res.status(204).end();
     }),
   );

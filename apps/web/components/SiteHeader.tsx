@@ -6,18 +6,20 @@ import { useState } from "react";
 import { Container } from "./Container";
 import { ThemeToggle } from "./ThemeToggle";
 
-// Research is left out until there is at least one real publication (added in Phase 4).
-const nav = [
+const allNav = [
   { href: "/projects", label: "Projects" },
   { href: "/experience", label: "Experience" },
+  { href: "/research", label: "Research" },
   { href: "/about", label: "About" },
   { href: "/resume", label: "Resume" },
   { href: "/contact", label: "Contact" },
 ];
 
-export function SiteHeader() {
+// showResearch comes from the server: Research is hidden until at least one publication exists.
+export function SiteHeader({ showResearch }: { showResearch: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const nav = showResearch ? allNav : allNav.filter((item) => item.href !== "/research");
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 

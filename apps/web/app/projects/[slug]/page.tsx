@@ -10,8 +10,6 @@ import { ApiError, getProject, type Project } from "@/lib/api";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamic = "force-dynamic";
-
 // generateMetadata and the page both need the project; React's cache() makes that one API call per request.
 // Returns null for "no such project" and throws for "API unreachable", so the two cases look different.
 const loadProject = cache(async (slug: string): Promise<Project | null> => {

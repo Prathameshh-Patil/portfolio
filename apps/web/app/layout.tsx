@@ -2,11 +2,17 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { loadPublications } from "@/lib/publications";
 import "./globals.css";
 
 // next/font downloads the fonts at build time and serves them from this app (no runtime Google request).
 const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-sans" });
 const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono" });
+
+// Every page renders per request: pages show live API data (admin edits appear on the next load), the nav
+// depends on whether Research has entries, and the API isn't reachable during `docker compose build`.
+// Fine for a local demo; on a public site I'd cache and revalidate when admin data changes.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: { default: "Prathamesh Patil", template: "%s · Prathamesh Patil" },
@@ -17,7 +23,11 @@ const themeScript = `(function(){var t;try{t=localStorage.getItem('theme')}catch
 if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}
 document.documentElement.dataset.theme=t})()`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Research stays out of the nav until at least one real publication exists (and if the API is down).
+  const publications = await loadPublications();
+  const showResearch = (publications?.length ?? 0) > 0;
+
   return (
     // suppressHydrationWarning: the script above changes data-theme before React hydrates.
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`} suppressHydrationWarning>
@@ -25,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="flex min-h-screen flex-col font-sans">
-        <SiteHeader />
+        <SiteHeader showResearch={showResearch} />
         <main id="main" className="flex-1">
           {children}
         </main>

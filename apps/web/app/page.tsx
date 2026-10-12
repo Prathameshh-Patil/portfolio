@@ -7,9 +7,6 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { experience, profile, resumes } from "@/lib/profile";
 import { getProjects, type Project } from "@/lib/api";
 
-// Rendered on every request: project data is live from the API (and the API isn't reachable at build time).
-export const dynamic = "force-dynamic";
-
 export default async function HomePage() {
   // If the API is down, the rest of the page still renders; only this section shows an error.
   let featured: Project[] | null = null;
