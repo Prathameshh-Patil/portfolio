@@ -22,6 +22,7 @@ const seed = [
       "Support inbox where four single-purpose agents sort, extract, draft and check replies, and a human approves, edits or rejects every draft. Every agent output is schema-validated with one retry. On 60 labelled messages: 97% category accuracy and no invented customer details.",
     techStack: ["Next.js", "TypeScript", "FastAPI", "PostgreSQL", "Pydantic", "gpt-oss-120b on Groq", "Docker"],
     repoUrl: "https://github.com/Prathameshh-Patil/replydesk",
+    demoUrl: "https://replydesk-kappa.vercel.app",
     featured: true,
     sortOrder: 2,
   },

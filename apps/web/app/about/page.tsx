@@ -10,9 +10,10 @@ export default function AboutPage() {
     <Container className="max-w-3xl">
       <PageHeader label="About" title={`Hi, I'm ${profile.name.split(" ")[0]}.`} />
 
-      {/* TODO: replace with a longer bio written by me. Only facts I've provided go here. */}
       <section className="space-y-4 leading-relaxed">
-        <p>{profile.bio}</p>
+        {profile.about.map((paragraph) => (
+          <p key={paragraph.slice(0, 20)}>{paragraph}</p>
+        ))}
         <p>
           I&apos;m based in {profile.location} and open to {profile.openTo.join(", ")} roles. {profile.availability}
         </p>

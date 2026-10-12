@@ -8,7 +8,12 @@ export const profile = {
   github: "https://github.com/Prathameshh-Patil",
   linkedin: "https://www.linkedin.com/in/prathamesh-patil-1872442a3",
   headline: "Full-stack engineer who builds AI-backed products, from database to deployed app.",
-  bio: "B.E. in Artificial Intelligence & Machine Learning from Dayananda Sagar Academy of Technology and Management, Bengaluru (2022 – Oct 2026, CGPA 7.6), with 11 months of internship experience building backend and LLM services. I like taking a business workflow and turning it into a working product that I own across interface, backend, data and AI.",
+  // The About page, one string per paragraph. Every claim here is backed by the experience and projects below.
+  about: [
+    "I'm finishing a B.E. in Artificial Intelligence & Machine Learning at Dayananda Sagar Academy of Technology and Management in Bengaluru. Along the way I did two internships, 11 months in all: six at Jmedia Corp building FastAPI services behind LLM features, and five at SuprMentr on a multi-agent RAG platform that checks its own answers for hallucinations.",
+    "I like taking a real workflow and building all of it, from the screens to the database to the AI in the middle. Slotwise is a booking site where Postgres, not my code, decides who gets a seat when twelve requests hit it at once. ReplyDesk lets four small agents handle the routine part of support email, but a person still approves every reply. IntentBench puts a classical model, a fine-tuned one and an LLM on the same data, so the choice of what to ship comes from numbers, not taste.",
+    "I also like the unglamorous parts: a test that fails when the one important rule breaks, a README that admits what the project can't do yet, and a setup that starts with one command. This site is built the same way.",
+  ],
   // The bio's last sentence on its own, used as the hero's one-line summary.
   summary:
     "I like taking a business workflow and turning it into a working product that I own across interface, backend, data and AI.",

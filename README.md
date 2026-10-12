@@ -98,7 +98,7 @@ Run `npm run demo` first, so the database is clean. Keep a second tab on the adm
 **2. A case study (1 min)**
 - **Open Slotwise:** problem, architecture diagram, decisions, results.
 - The view counter goes up by one, and only once per browser session; refresh to show it doesn't count again.
-- The "Open demo" button is here because Slotwise has a working live URL. ReplyDesk has no button because it has no demo link yet.
+- The "Open demo" button is here because Slotwise has a working live URL. Projects without a working live URL (the loan agent) get no button.
 
 **3. Contact form (1 min)**
 - Submit it empty: the errors appear and focus jumps to the first field.
@@ -115,4 +115,4 @@ Run `npm run demo` first, so the database is clean. Keep a second tab on the adm
 
 ## Content still to fill in
 
-The site never shows a made-up number: wherever a fact is missing, the page shows a visible TODO. Search for `<Todo` in `apps/web/content/projects/`, and see the `TODO` comment in `apps/web/app/about/page.tsx`.
+The site never shows a made-up number: wherever a fact is missing, the page shows a visible TODO. Search for `<Todo` in `apps/web/content/projects/`.

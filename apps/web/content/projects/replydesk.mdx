@@ -1,5 +1,5 @@
 import { Diagram } from "@/components/Diagram";
-import { MetricsTable, Todo } from "@/components/CaseStudyParts";
+import { MetricsTable } from "@/components/CaseStudyParts";
 
 ## Problem
 
@@ -7,11 +7,13 @@ Support teams want AI to speed up replies, but a wrong or invented answer sent t
 
 ## What I built
 
-An AI support inbox with human approval.
+An AI support inbox with human approval, built for a fictional online electronics store whose three support staff answer about 150 emails a day.
 
 - **Four single-purpose agents** handle each customer message: one sorts it by category and urgency, one extracts its details, one drafts a reply, and one checks the draft.
 - **A human support agent** then approves, edits or rejects the draft. Nothing is sent without a human decision.
 - **Stack:** Next.js and TypeScript, FastAPI with SQLAlchemy and Pydantic, PostgreSQL with Alembic, running in Docker. Each agent is a prompt file run through one OpenAI-compatible client, currently on gpt-oss-120b via Groq.
+- **Tests:** 84 API tests on a real Postgres and 2 Playwright tests on the whole Docker stack. A fake model client keeps the tests offline and free.
+- **Live demo:** front end on Vercel, API on Render, database on Neon, all on free plans. Choose **Log in → Try the demo** (no password), or write in as a customer at **New message**. The free server sleeps when idle, so the first load can take a minute, and the demo is capped at 25 new messages a day to stay inside the free model quota.
 
 ## Architecture
 
@@ -42,7 +44,8 @@ The dashed arrow applies to every agent step, not only extraction: any output th
 
 ## Key decisions and trade-offs
 
-- **Orchestration in plain Python, not inside the agent tool.** Step order, storage and business rules are ordinary Python code. When something fails, it points to one step, and the pipeline can be re-run from that step instead of from the start.
+- **Orchestration in plain Python, not inside the agent tool.** Step order, storage and business rules are ordinary Python code. Each step is saved before the next one starts, so a failure keeps earlier work and a rerun continues from the failed step. Every model call is logged with its input, output, time and error.
+- **Code has the last word on facts.** An order ID the model "found" that isn't actually in the message is dropped by code.
 - **The model provider is configuration, not code.** The rest of the code only knows `call_agent(agent_name, message)`. The provider changed during the build and the pipeline and its tests didn't have to.
 - **Small agents with one job each.** Four focused agents are easier to test and debug than one agent that does everything, at the cost of more calls per message.
 - **Validate every agent output.** Each output is checked against a Pydantic schema. If it fails, the step is retried once; if it fails again, the message goes to a manual-handling queue instead of moving on with bad data.
@@ -50,7 +53,7 @@ The dashed arrow applies to every agent step, not only extraction: any output th
 
 ## Results
 
-A set of **60 labelled messages** (`eval/emails.csv`) defines the expected category, urgency and details for each message. An eval script scores every run, so a prompt change is measured, not guessed. The second run changed only the sorter prompt (urgency rules checked in order, clearer complaint / billing / refund rules).
+A set of **60 hand-labelled messages** (`eval/emails.csv`, including angry, Hinglish, two-problem, missing-detail and prompt-injection messages) defines the expected category, urgency and details for each message. An eval script scores every run, so a prompt change is measured, not guessed. The second run changed only the sorter prompt (urgency rules checked in order, clearer complaint / billing / refund rules).
 
 <MetricsTable
   columns={["Measure", "First run", "Sorter prompt v2"]}
@@ -68,9 +71,10 @@ A set of **60 labelled messages** (`eval/emails.csv`) defines the expected categ
 
 "Invented" counts messages that had no name, order ID or product, where the extractor still returned one. Model: gpt-oss-120b on Groq's free tier.
 
-## What I'd do next
+## Limits and what I'd do next
 
-- **Urgency is the weakest score (87%).** 5 of the 8 remaining urgency misses rate a message more urgent than its label, so those rules need more work.
-- **Move the login token to an httpOnly cookie.** It is in `localStorage` today, which is simpler; the cookie is safer but needs cookie auth and CSRF protection on the API.
-
-<Todo>add anything else you would improve or build next, or delete this note.</Todo>
+- **The AI only knows what's in the message.** It can't look up an order, so drafts often say "the team will check". A read-only order-lookup tool is the obvious next feature.
+- **The eval is small:** 60 messages I labelled myself. Good for comparing versions, not for precise claims. Urgency is the weakest measure; most remaining misses are "high" vs "medium" judgement calls.
+- **No real email in or out.** Approving marks a reply as sent; messages arrive by form, API or CSV.
+- **Background tasks don't survive a restart:** a ticket caught mid-pipeline stays "processing" until it is rerun. A job queue would fix this at higher volume.
+- **The login token is in `localStorage`.** An httpOnly cookie with CSRF protection would be safer.
