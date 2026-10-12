@@ -13,3 +13,7 @@ apps/web/public/resume/*
 !apps/web/public/resume/Prathamesh_Patil_SDE.pdf
 !apps/web/public/resume/Prathamesh_Patil_AI_Engineer.pdf
 !apps/web/public/resume/Prathamesh_Patil_FDE.pdf
+
+# Playwright output
+playwright-report
+test-results

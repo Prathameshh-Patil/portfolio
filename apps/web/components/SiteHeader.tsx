@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Container } from "./Container";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -19,7 +19,21 @@ const allNav = [
 export function SiteHeader({ showResearch }: { showResearch: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const menuButton = useRef<HTMLButtonElement>(null);
   const nav = showResearch ? allNav : allNav.filter((item) => item.href !== "/research");
+
+  // Escape closes the mobile menu and puts focus back on the button that opened it.
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+        menuButton.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -50,6 +64,7 @@ export function SiteHeader({ showResearch }: { showResearch: boolean }) {
           <ul className="hidden items-center sm:flex">{links}</ul>
           <ThemeToggle />
           <button
+            ref={menuButton}
             type="button"
             className="rounded-md p-2 text-muted hover:text-text sm:hidden"
             aria-expanded={open}

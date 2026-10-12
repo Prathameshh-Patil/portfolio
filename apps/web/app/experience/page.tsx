@@ -13,7 +13,7 @@ export default function ExperiencePage() {
         title="Where I've worked"
         intro="11 months of internships building backend services, LLM features and the infrastructure around them."
       />
-      <ExperienceList items={experience} />
+      <ExperienceList items={experience} heading="h2" />
     </Container>
   );
 }

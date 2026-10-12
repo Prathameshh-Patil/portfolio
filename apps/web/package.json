@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start --port 3000",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -19,6 +20,7 @@
     "zod": "^4.6.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/mdx": "^2.0.14",
     "@types/node": "^26.6.5",

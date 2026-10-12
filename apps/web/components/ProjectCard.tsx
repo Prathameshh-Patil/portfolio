@@ -5,9 +5,10 @@ import { ArrowRight, ArrowUpRight, GitHub } from "./icons";
 
 type CardProject = Pick<Project, "slug" | "title" | "summary" | "techStack" | "repoUrl">;
 
+// `heading` keeps the outline correct: h3 under a section's h2 (home page), h2 directly under the page's h1.
 // The whole card opens the case study: the title link is stretched over the card (after:absolute
 // after:inset-0). The GitHub link sits above that layer (relative z-10) so it stays separately clickable.
-export function ProjectCard({ project, wide = false }: { project: CardProject; wide?: boolean }) {
+export function ProjectCard({ project, wide = false, heading: Heading = "h3" }: { project: CardProject; wide?: boolean; heading?: "h2" | "h3" }) {
   const highlight = projectHighlights[project.slug];
   const splitAt = project.title.lastIndexOf(" ") + 1;
   const titleStart = project.title.slice(0, splitAt);
@@ -15,7 +16,7 @@ export function ProjectCard({ project, wide = false }: { project: CardProject; w
 
   return (
     <article
-      className={`card group relative flex flex-col gap-6 p-5 transition-all duration-300 hover:border-accent/40 hover:shadow-[inset_0_1px_0_0_var(--highlight),0_20px_40px_-20px_var(--accent)] motion-safe:hover:-translate-y-1 sm:p-6 ${
+      className={`card group relative flex flex-col gap-6 p-5 transition-all duration-300 hover:border-accent/40 focus-within:border-accent/60 hover:shadow-[inset_0_1px_0_0_var(--highlight),0_20px_40px_-20px_var(--accent)] motion-safe:hover:-translate-y-1 sm:p-6 ${
         wide ? "lg:flex-row lg:items-stretch lg:gap-8" : ""
       }`}
     >
@@ -25,7 +26,7 @@ export function ProjectCard({ project, wide = false }: { project: CardProject; w
         {highlight?.status && (
           <p className="mb-3 w-fit rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-muted">{highlight.status}</p>
         )}
-        <h3 className={`font-semibold leading-snug tracking-tight ${wide ? "text-xl" : "text-lg"}`}>
+        <Heading className={`font-semibold leading-snug tracking-tight ${wide ? "text-xl" : "text-lg"}`}>
           <Link href={`/projects/${project.slug}`} className="transition-colors after:absolute after:inset-0 after:rounded-[0.875rem] group-hover:text-accent">
             {titleStart}
             {/* Last word and arrow can't be split, so the arrow never wraps onto a line by itself. */}
@@ -34,7 +35,7 @@ export function ProjectCard({ project, wide = false }: { project: CardProject; w
               <ArrowUpRight className="ml-1.5 inline h-4 w-4 align-[-2px] text-muted transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
             </span>
           </Link>
-        </h3>
+        </Heading>
         <p className="mt-2 text-sm leading-relaxed text-muted">{highlight?.tagline ?? project.summary}</p>
 
         <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Tech stack">

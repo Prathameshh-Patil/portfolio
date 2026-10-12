@@ -1,0 +1,56 @@
+# Checks every push and pull request. Nothing is deployed: this only proves the code works.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # Runs against an in-memory Postgres (PGlite), so no database service is needed.
+      - name: API tests
+        run: npm test
+
+      - name: Web build
+        run: npm run build -w apps/web
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      # Starts the built site against a mock API (see apps/web/e2e/mock-api.mjs).
+      - name: Playwright smoke tests
+        run: npm run test:e2e -w apps/web
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
+
+      # compose reads .env for the api service; the example values are enough to build the images.
+      - name: Docker images build
+        run: |
+          cp .env.example .env
+          docker compose build
