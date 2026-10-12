@@ -68,11 +68,13 @@ Live at **https://prathameshpatil.vercel.app** (API: https://prathameshpatil-api
 | API | Vercel project `prathameshpatil-api`, root `apps/api` | `api/index.ts` exports the same Express app that Docker runs; `vercel.json` routes every path to it |
 | Database | Neon Postgres (free), connected to the API project | Adds `DATABASE_URL`; each API deploy runs the migrations and the seed (`vercel-build`) |
 
-Deploy from the repo root, so Vercel sees the npm workspace and its lockfile (IDs are in each app's `.vercel/project.json`):
+**Auto-deploy:** both Vercel projects are connected to this GitHub repo. A push to `main` deploys the site and the API to production; a pull request gets its own preview URL. GitHub Actions (CI) checks the same commit in parallel, so a red CI run means: fix it and push again.
+
+Manual deploy, if ever needed (from the repo root, so Vercel sees the npm workspace; IDs are in each app's `.vercel/project.json`):
 
 ```bash
-VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<api project> npx vercel deploy --prod   # API first
-VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<web project> npx vercel deploy --prod   # then the website
+VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<api project> npx vercel deploy --prod
+VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<web project> npx vercel deploy --prod
 ```
 
 `.vercelignore` keeps `.env` files, build output and private PDFs out of the upload. Environment variables live in each Vercel project. On Vercel, each running copy of the API keeps its own rate-limit counts, so the limits there are approximate.
@@ -86,7 +88,7 @@ npm test            # 18 API tests (Vitest + PGlite, no Docker needed)
 npm run test:e2e    # 13 Playwright tests against the production build and a mock API
 ```
 
-GitHub Actions runs all of these on every push and pull request. It also builds the web app and both Docker images.
+GitHub Actions runs all of these on every push and pull request. It also builds the web app and both Docker images. Deploying is Vercel's job, not CI's.
 
 ## Design decisions
 
