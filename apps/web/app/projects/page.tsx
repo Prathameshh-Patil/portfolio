@@ -1,12 +1,19 @@
+import { ApiErrorNotice } from "@/components/ApiErrorNotice";
 import { Container } from "@/components/Container";
 import { PageHeader } from "@/components/PageHeader";
 import { ProjectCard } from "@/components/ProjectCard";
-import { getProjects } from "@/lib/projects";
+import { getProjects, type Project } from "@/lib/api";
 
 export const metadata = { title: "Projects" };
+export const dynamic = "force-dynamic";
 
-export default function ProjectsPage() {
-  const projects = getProjects();
+export default async function ProjectsPage() {
+  let projects: Project[] | null = null;
+  try {
+    projects = await getProjects(); // already sorted by the API: featured first, then sortOrder
+  } catch {
+    projects = null;
+  }
 
   return (
     <Container>
@@ -15,11 +22,15 @@ export default function ProjectsPage() {
         title="Things I've built"
         intro="Each project has a case study: the problem, what I built, the architecture, the trade-offs I made and the results."
       />
-      <div className="grid gap-4 sm:grid-cols-2">
-        {projects.map((project) => (
-          <ProjectCard key={project.slug} project={project} />
-        ))}
-      </div>
+      {projects ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {projects.map((project) => (
+            <ProjectCard key={project.slug} project={project} />
+          ))}
+        </div>
+      ) : (
+        <ApiErrorNotice what="projects" />
+      )}
     </Container>
   );
 }

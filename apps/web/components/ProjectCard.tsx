@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { ProjectSummary } from "@/lib/projects";
+import type { Project } from "@/lib/api";
 
 // The whole card is clickable via the title link stretched over it (after:absolute after:inset-0).
-export function ProjectCard({ project }: { project: ProjectSummary }) {
+export function ProjectCard({ project }: { project: Pick<Project, "slug" | "title" | "summary" | "techStack"> }) {
   return (
     <article className="group relative flex flex-col rounded-lg border border-border bg-surface p-5 transition-colors hover:border-accent">
       <h3 className="font-semibold leading-snug tracking-tight">

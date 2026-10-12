@@ -23,6 +23,26 @@ services:
     ports: ["4000:4000"]
     depends_on:
       db: { condition: service_healthy }
+    # Checked often so `web` can start as soon as the API is ready.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4000/health || exit 1"]
+      interval: 3s
+      retries: 20
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Baked into the browser bundle: the browser runs on the host, so it uses localhost.
+        NEXT_PUBLIC_API_URL: http://localhost:4000
+    environment:
+      # Read at runtime by Server Components: inside Docker the API is reachable by its service name.
+      API_URL_INTERNAL: http://api:4000
+    # Host port is configurable in case 3000 is taken (remember to add that origin to CORS_ORIGINS).
+    ports: ["${WEB_PORT:-3000}:3000"]
+    depends_on:
+      api: { condition: service_healthy }
 
 volumes:
   pgdata:

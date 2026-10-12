@@ -1,13 +1,23 @@
+import { ApiErrorNotice } from "@/components/ApiErrorNotice";
 import { ButtonLink } from "@/components/ButtonLink";
 import { Container } from "@/components/Container";
 import { ExperienceList } from "@/components/ExperienceList";
 import { ProjectCard } from "@/components/ProjectCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { experience, profile, resumes } from "@/lib/profile";
-import { getProjects } from "@/lib/projects";
+import { getProjects, type Project } from "@/lib/api";
 
-export default function HomePage() {
-  const featured = getProjects().filter((p) => p.featured).slice(0, 3);
+// Rendered on every request: project data is live from the API (and the API isn't reachable at build time).
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  // If the API is down, the rest of the page still renders; only this section shows an error.
+  let featured: Project[] | null = null;
+  try {
+    featured = (await getProjects()).filter((p) => p.featured).slice(0, 3);
+  } catch {
+    featured = null;
+  }
 
   return (
     <>
@@ -43,11 +53,15 @@ export default function HomePage() {
       <section className="py-12" aria-labelledby="featured-heading">
         <Container>
           <SectionHeading label="Selected work" title="Featured projects" href="/projects" linkText="All projects" />
-          <div className="grid gap-4 md:grid-cols-3">
-            {featured.map((project) => (
-              <ProjectCard key={project.slug} project={project} />
-            ))}
-          </div>
+          {featured ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {featured.map((project) => (
+                <ProjectCard key={project.slug} project={project} />
+              ))}
+            </div>
+          ) : (
+            <ApiErrorNotice what="projects" />
+          )}
         </Container>
       </section>
 
