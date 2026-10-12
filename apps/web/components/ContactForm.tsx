@@ -4,12 +4,10 @@ import { useRef, useState } from "react";
 import { z } from "zod";
 import { ApiError, sendContact } from "@/lib/api";
 import { contactSchema, type ContactField } from "@/lib/contact";
+import { inputClass } from "./form";
 
 type Status = "idle" | "sending" | "sent" | "error";
 type Errors = Partial<Record<ContactField, string>>;
-
-const fieldClass =
-  "mt-1.5 block w-full rounded-md border border-border bg-surface px-3 py-2.5 text-sm text-text placeholder:text-muted/70 transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-red-600 dark:aria-[invalid=true]:border-red-400";
 
 export function ContactForm() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -108,7 +106,7 @@ export function ContactForm() {
     "aria-invalid": errors[name] ? true : undefined,
     "aria-describedby": errors[name] ? `${name}-error` : undefined,
     onChange: () => clearError(name),
-    className: fieldClass,
+    className: inputClass,
   });
 
   return (
