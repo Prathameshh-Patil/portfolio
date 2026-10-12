@@ -1,13 +1,13 @@
 # portfolio-api
 
-Backend for my portfolio website. It serves my projects, receives contact-form messages, counts project views, and powers a small admin panel.
+Backend for my portfolio website. It serves my projects and publications, receives contact-form messages, counts project views, and powers a small admin panel. It's one app in the monorepo; see the [root README](../../README.md) to run the whole stack.
 
-**Stack:** Node.js · TypeScript · Express · PostgreSQL (Neon) · Drizzle ORM · Zod · JWT · Vitest · Docker · GitHub Actions
+**Stack:** Node.js · TypeScript · Express · PostgreSQL · Drizzle ORM · Zod · JWT · Vitest · Docker
 
 ## Architecture
 
 ```
-Next.js frontend ──HTTP/JSON──▶ Express API ──Drizzle──▶ PostgreSQL (Neon)
+Next.js frontend ──HTTP/JSON──▶ Express API ──Drizzle──▶ PostgreSQL
                                     │
                                     └──▶ Resend (email on new contact message)
 ```
@@ -17,7 +17,7 @@ src/
   app.ts            builds the Express app (middleware + routes); tests use it directly
   server.ts         starts the server, graceful shutdown
   config.ts         validates environment variables at startup
-  db/schema.ts      tables: projects, messages
+  db/schema.ts      tables: projects, publications, messages
   db/client.ts      Postgres connection pool
   db/migrate.ts     applies SQL migrations from ./drizzle
   db/seed.ts        inserts my resume projects
@@ -38,6 +38,7 @@ tests/              API tests against an in-memory Postgres (PGlite)
 | GET | `/api/projects` | – | Published projects, featured first |
 | GET | `/api/projects/:slug` | – | One project |
 | POST | `/api/projects/:slug/view` | – | Adds one view, returns the new count |
+| GET | `/api/publications` | – | Visible publications, in display order |
 | POST | `/api/contact` | – | Saves a message (rate-limited: 5 per IP per hour) |
 | POST | `/api/auth/login` | – | `{ email, password }` → `{ token }` (valid 2 hours) |
 | GET | `/api/admin/stats` | Admin | Message counts and most-viewed projects |
@@ -46,6 +47,8 @@ tests/              API tests against an in-memory Postgres (PGlite)
 | DELETE | `/api/admin/messages/:id` | Admin | Delete a message |
 | GET / POST | `/api/admin/projects` | Admin | List all (including drafts) / create |
 | PATCH / DELETE | `/api/admin/projects/:id` | Admin | Update only the sent fields / delete |
+| GET / POST | `/api/admin/publications` | Admin | List all (including hidden) / create |
+| PATCH / DELETE | `/api/admin/publications/:id` | Admin | Update only the sent fields / delete |
 
 Admin requests send `Authorization: Bearer <token>`. Errors always look like `{ "error": "...", "details"?: {...} }`.
 
@@ -62,22 +65,19 @@ Admin requests send `Authorization: Bearer <token>`. Errors always look like `{ 
 
 ## Run locally
 
-```bash
-npm install
-cp .env.example .env            # then fill it in
-npm run hash-password -- "a-strong-password"   # paste the result into ADMIN_PASSWORD_HASH
+The usual way is the whole stack from the repo root (`docker compose up --build`). To run only the API with hot reload, from the repo root:
 
-docker compose up -d db         # local Postgres (or use your Neon URL in .env)
-npm run db:migrate
-npm run db:seed
-npm run dev                     # http://localhost:4000
+```bash
+docker compose up -d db          # Postgres on host port 5434
+npm run db:migrate -w apps/api
+npm run db:seed -w apps/api
+npm run dev -w apps/api          # http://localhost:4000, reads ../../.env
 ```
 
-Or everything in Docker: `docker compose up --build`.
-
 ```bash
-npm test          # 17 API tests
-npm run typecheck
+npm test -w apps/api             # 29 API tests, no Docker needed
+npm run typecheck -w apps/api
+npm run lint -w apps/api
 ```
 
 ## Changing the database schema
@@ -85,15 +85,6 @@ npm run typecheck
 Edit `src/db/schema.ts`, then:
 
 ```bash
-npm run db:generate   # writes a new SQL file in ./drizzle; review it and commit it
-npm run db:migrate
+npm run db:generate -w apps/api   # writes a new SQL file in ./drizzle; review it and commit it
+npm run db:migrate -w apps/api
 ```
-
-## Deploy
-
-1. Create a Neon database and copy its connection string (it ends in `?sslmode=require`).
-2. Deploy this repo with its Dockerfile on Render, Railway or Fly.io. The container applies migrations on start.
-3. Set the environment variables from `.env.example`. Set `CORS_ORIGINS` to your site's real URL, e.g. `https://yourdomain.com`.
-4. Point your frontend at the API URL (e.g. `https://api.yourdomain.com`).
-
-Free tiers may put the service to sleep; the first request after that is slow. Statically render project pages in Next.js and only call the API for the view counter and contact form, so the site stays fast either way.

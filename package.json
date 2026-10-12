@@ -6,7 +6,9 @@
     "dev": "docker compose up -d db && (npm run dev -w apps/api & npm run dev -w apps/web & wait)",
     "typecheck": "npm run typecheck --workspaces",
     "lint": "npm run lint --workspaces",
-    "test": "npm test -w apps/api"
+    "test": "npm test -w apps/api",
+    "test:e2e": "npm run test:e2e -w apps/web",
+    "demo": "bash scripts/demo.sh"
   },
   "engines": { "node": ">=20" }
 }
