@@ -12,7 +12,8 @@
     "db:migrate": "tsx --env-file-if-exists=../../.env src/db/migrate.ts",
     "db:seed": "tsx --env-file-if-exists=../../.env src/db/seed.ts",
     "hash-password": "tsx scripts/hash-password.ts",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "vercel-build": "tsx src/db/migrate.ts && tsx src/db/seed.ts"
   },
   "author": "",
   "license": "ISC",

@@ -27,7 +27,7 @@ export interface AppDeps {
 export function createApp(deps: AppDeps) {
   const app = express();
 
-  // Behind Render/Railway/Fly there is one proxy in front; needed for correct client IPs in rate limiting.
+  // On Vercel one proxy sits in front and sets X-Forwarded-For; needed for correct client IPs in rate limiting.
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
 
