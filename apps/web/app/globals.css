@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* `dark:` utilities follow the data-theme attribute set in layout.tsx, not just the OS setting,
+   so the toggle can override the system preference. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Colour tokens. Components use these names (bg-surface, text-muted...) and never raw colours,
+   so dark mode is just a second set of values. One accent colour: deep teal. */
+:root {
+  --bg: #faf9f7;
+  --surface: #ffffff;
+  --text: #1b1a18;
+  --muted: #5d5952;
+  --border: #e5e1da;
+  --accent: #0d6b5c;
+  --accent-hover: #0a5549;
+  --accent-fg: #ffffff;
+  --accent-soft: #e2f0ec;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --bg: #121211;
+  --surface: #1a1a18;
+  --text: #ecebe7;
+  --muted: #a5a199;
+  --border: #2d2c29;
+  --accent: #5cc8b2;
+  --accent-hover: #7dd6c3;
+  --accent-fg: #0a1f1b;
+  --accent-soft: #15302a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* One visible focus style for every interactive element (keyboard users only). */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+  }
+}

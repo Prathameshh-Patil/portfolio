@@ -1,0 +1,15 @@
+node_modules
+dist
+.next
+next-env.d.ts
+*.tsbuildinfo
+.env
+*.log
+coverage
+.DS_Store
+
+# Only the three public resumes are part of the site; anything else in this folder stays local.
+apps/web/public/resume/*
+!apps/web/public/resume/Prathamesh_Patil_SDE.pdf
+!apps/web/public/resume/Prathamesh_Patil_AI_Engineer.pdf
+!apps/web/public/resume/Prathamesh_Patil_FDE.pdf
