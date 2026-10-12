@@ -8,7 +8,7 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { StatusPill } from "@/components/StatusPill";
 import { getProjects, type Project } from "@/lib/api";
-import { coreStack, education, experience, profile, resumes } from "@/lib/profile";
+import { coreStack, education, experience, profile, resumeFile } from "@/lib/profile";
 
 // Staggered entrance: each block fades up a little after the previous one. The animation class is
 // motion-safe:, so people who ask for reduced motion see everything immediately.
@@ -63,7 +63,7 @@ export default async function HomePage() {
           </ul>
 
           <div className={`${FADE} mt-8 flex flex-wrap gap-3`} style={delay(4)}>
-            <ButtonLink href={resumes.sde.file} variant="primary" download>
+            <ButtonLink href={resumeFile} variant="primary" download>
               <Download /> Download resume
             </ButtonLink>
             <ButtonLink href={profile.github} external>

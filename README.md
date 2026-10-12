@@ -1,6 +1,6 @@
 # Portfolio
 
-My personal portfolio: a Next.js website, an Express API with PostgreSQL, and a small admin panel to manage projects, publications and contact messages. The whole stack runs locally with one command.
+My personal portfolio: a Next.js website, an Express API with PostgreSQL, and a small admin panel to manage projects and contact messages. The whole stack runs locally with one command.
 
 **Stack:** TypeScript everywhere · Next.js (App Router) + Tailwind CSS + MDX · Express + Drizzle ORM + Zod + JWT · PostgreSQL · Vitest + Playwright · Docker Compose · GitHub Actions
 
@@ -15,7 +15,7 @@ flowchart LR
     A -. "optional: email on new message" .-> R[Resend]
 ```
 
-- **web** renders every page on the server. It fetches projects and publications from the API, and adds the long case studies from MDX files.
+- **web** renders every page on the server. It fetches projects from the API, and adds the long case studies from MDX files.
 - **Browser-side calls go straight to the API:** the view counter, the contact form and the whole admin panel.
 - **api** validates every request with Zod, stores data in Postgres, and protects admin routes with a JWT.
 - **db** is plain Postgres. The api container applies migrations and seeds the four resume projects when it starts.
@@ -28,7 +28,7 @@ apps/
     drizzle/           SQL migrations
     tests/             API tests against an in-memory Postgres (PGlite)
   web/                 Next.js website
-    app/               pages: home, projects, experience, about, resume, contact, research, admin
+    app/               pages: home, projects, experience, about, resume, contact, admin
     components/        UI; components/admin/ is the admin panel
     content/projects/  one MDX case study per project, named by slug
     lib/               API client, env checks, profile data, card highlights
@@ -63,7 +63,7 @@ If port 3000 is taken, set `WEB_PORT=3002` in `.env` and add `http://localhost:3
 ```bash
 npm run typecheck   # both apps
 npm run lint        # both apps
-npm test            # 29 API tests (Vitest + PGlite, no Docker needed)
+npm test            # 18 API tests (Vitest + PGlite, no Docker needed)
 npm run test:e2e    # 13 Playwright tests against the production build and a mock API
 ```
 
@@ -80,7 +80,7 @@ GitHub Actions runs all of these on every push and pull request. It also builds 
   - **Trade-off:** an httpOnly cookie would also hide the token from scripts, but would need CSRF protection.
 - **The database enforces correctness.** View counts use a single `UPDATE ... SET views = views + 1`, so simultaneous visits can't overwrite each other; a test fires 50 at once and checks for exactly 50.
 - **Forms validate twice.** The browser mirrors the API's Zod rules to give instant, accessible errors (focus moves to the first invalid field). The API is still the authority, and its field errors are mapped back onto the form. The contact form also has a rate limit and a honeypot field for bots.
-- **Never claim what isn't there.** The "Open demo" button appears only when a project has a demo URL. The Research section stays out of the navigation until a visible publication exists.
+- **Never claim what isn't there.** The "Open demo" button appears only when a project has a demo URL, and a missing fact shows as a visible TODO instead of a guess.
 - **Few dependencies.** No UI kit or animation library: Tailwind, CSS animations that respect reduced-motion, and an inline-SVG diagram component for the case studies.
 - **Startup order through healthchecks.** db → api (migrates and seeds, then reports healthy) → web, so the site never starts against a missing API. The seed only inserts missing projects, so restarts never overwrite admin edits.
 - **Rendered per request.** Pages always show live data, and the build doesn't need the API. Fine for a local site; on a public one I'd cache pages and revalidate when the admin changes data.
@@ -108,7 +108,6 @@ Run `npm run demo` first, so the database is clean. Keep a second tab on the adm
 **4. Admin (1.5 min)**
 - **Log in.** The dashboard shows the new unread message and the view you just made. Open the inbox and mark the message read.
 - **Projects:** unpublish a project, then reload the public Projects page in the other tab: it's gone. Publish it again.
-- **Publications:** the Research page appears in the nav only when a visible publication exists.
 - *Talking point:* every admin request carries the JWT, and an expired token sends you back to login. One of the Playwright tests checks exactly that.
 
 **Wrap-up, if there's time:** show `docker-compose.yml` (the healthcheck chain), the CI workflow, and one test, for example the 50 concurrent views.

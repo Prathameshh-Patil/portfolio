@@ -36,7 +36,6 @@ const server = createServer((req, res) => {
   const path = new URL(req.url, "http://localhost").pathname;
   if (path === "/health") return send(res, 200, { status: "ok" });
   if (path === "/api/projects") return send(res, 200, projects);
-  if (path === "/api/publications") return send(res, 200, []);
   // A slug that simulates the API failing, to test the friendly error state.
   if (path === "/api/projects/api-error") return send(res, 500, { error: "Internal server error" });
   const match = path.match(/^\/api\/projects\/([a-z0-9-]+)$/);

@@ -8,11 +8,9 @@ next-env.d.ts
 coverage
 .DS_Store
 
-# Only the three public resumes are part of the site; anything else in this folder stays local.
+# Only the public resume is part of the site; anything else in this folder stays local.
 apps/web/public/resume/*
-!apps/web/public/resume/Prathamesh_Patil_SDE.pdf
-!apps/web/public/resume/Prathamesh_Patil_AI_Engineer.pdf
-!apps/web/public/resume/Prathamesh_Patil_FDE.pdf
+!apps/web/public/resume/Prathamesh_Patil_Resume.pdf
 
 # Playwright output
 playwright-report

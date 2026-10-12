@@ -10,7 +10,6 @@ const nav = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/messages", label: "Messages" },
   { href: "/admin/projects", label: "Projects" },
-  { href: "/admin/publications", label: "Publications" },
 ];
 
 // Guards every admin page: without a token you are sent to the login page.

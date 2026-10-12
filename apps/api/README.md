@@ -1,6 +1,6 @@
 # portfolio-api
 
-Backend for my portfolio website. It serves my projects and publications, receives contact-form messages, counts project views, and powers a small admin panel. It's one app in the monorepo; see the [root README](../../README.md) to run the whole stack.
+Backend for my portfolio website. It serves my projects, receives contact-form messages, counts project views, and powers a small admin panel. It's one app in the monorepo; see the [root README](../../README.md) to run the whole stack.
 
 **Stack:** Node.js · TypeScript · Express · PostgreSQL · Drizzle ORM · Zod · JWT · Vitest · Docker
 
@@ -17,7 +17,7 @@ src/
   app.ts            builds the Express app (middleware + routes); tests use it directly
   server.ts         starts the server, graceful shutdown
   config.ts         validates environment variables at startup
-  db/schema.ts      tables: projects, publications, messages
+  db/schema.ts      tables: projects, messages
   db/client.ts      Postgres connection pool
   db/migrate.ts     applies SQL migrations from ./drizzle
   db/seed.ts        inserts my resume projects
@@ -38,7 +38,6 @@ tests/              API tests against an in-memory Postgres (PGlite)
 | GET | `/api/projects` | – | Published projects, featured first |
 | GET | `/api/projects/:slug` | – | One project |
 | POST | `/api/projects/:slug/view` | – | Adds one view, returns the new count |
-| GET | `/api/publications` | – | Visible publications, in display order |
 | POST | `/api/contact` | – | Saves a message (rate-limited: 5 per IP per hour) |
 | POST | `/api/auth/login` | – | `{ email, password }` → `{ token }` (valid 2 hours) |
 | GET | `/api/admin/stats` | Admin | Message counts and most-viewed projects |
@@ -47,8 +46,6 @@ tests/              API tests against an in-memory Postgres (PGlite)
 | DELETE | `/api/admin/messages/:id` | Admin | Delete a message |
 | GET / POST | `/api/admin/projects` | Admin | List all (including drafts) / create |
 | PATCH / DELETE | `/api/admin/projects/:id` | Admin | Update only the sent fields / delete |
-| GET / POST | `/api/admin/publications` | Admin | List all (including hidden) / create |
-| PATCH / DELETE | `/api/admin/publications/:id` | Admin | Update only the sent fields / delete |
 
 Admin requests send `Authorization: Bearer <token>`. Errors always look like `{ "error": "...", "details"?: {...} }`.
 
@@ -75,7 +72,7 @@ npm run dev -w apps/api          # http://localhost:4000, reads ../../.env
 ```
 
 ```bash
-npm test -w apps/api             # 29 API tests, no Docker needed
+npm test -w apps/api             # 18 API tests, no Docker needed
 npm run typecheck -w apps/api
 npm run lint -w apps/api
 ```

@@ -21,25 +21,3 @@ export const projectFormSchema = z.object({
   featured: z.boolean(),
   published: z.boolean(),
 });
-
-export const publicationStatuses = ["published", "accepted", "under_review", "preprint"] as const;
-
-export const publicationFormSchema = z.object({
-  title: z.string().trim().min(1, "Required.").max(300, "Max 300 characters."),
-  authors: z.string().trim().min(1, "Required.").max(1000, "Max 1,000 characters."),
-  venue: z
-    .string()
-    .trim()
-    .max(200, "Max 200 characters.")
-    .transform((v) => v || null),
-  year: z
-    .string()
-    .trim()
-    .transform((v) => (v ? Number(v) : null))
-    .pipe(z.number("Enter a year.").int().min(1900, "Enter a year from 1900.").max(2100, "Enter a year up to 2100.").nullable()),
-  status: z.enum(publicationStatuses),
-  url: optionalUrl,
-  summary: z.string().trim().min(1, "Required.").max(2000, "Max 2,000 characters."),
-  visible: z.boolean(),
-  sortOrder: z.coerce.number().int("Whole number only."),
-});

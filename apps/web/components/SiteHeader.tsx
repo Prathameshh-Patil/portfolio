@@ -6,21 +6,18 @@ import { useEffect, useRef, useState } from "react";
 import { Container } from "./Container";
 import { ThemeToggle } from "./ThemeToggle";
 
-const allNav = [
+const nav = [
   { href: "/projects", label: "Projects" },
   { href: "/experience", label: "Experience" },
-  { href: "/research", label: "Research" },
   { href: "/about", label: "About" },
   { href: "/resume", label: "Resume" },
   { href: "/contact", label: "Contact" },
 ];
 
-// showResearch comes from the server: Research is hidden until at least one publication exists.
-export function SiteHeader({ showResearch }: { showResearch: boolean }) {
+export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
-  const nav = showResearch ? allNav : allNav.filter((item) => item.href !== "/research");
 
   // Escape closes the mobile menu and puts focus back on the button that opened it.
   useEffect(() => {

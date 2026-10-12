@@ -21,11 +21,7 @@ export const profile = {
   availability: "Available to join immediately.",
 };
 
-export const resumes = {
-  sde: { label: "Software Engineer", file: "/resume/Prathamesh_Patil_SDE.pdf" },
-  ai: { label: "AI Engineer", file: "/resume/Prathamesh_Patil_AI_Engineer.pdf" },
-  fde: { label: "Forward Deployed Engineer", file: "/resume/Prathamesh_Patil_FDE.pdf" },
-} as const;
+export const resumeFile = "/resume/Prathamesh_Patil_Resume.pdf";
 
 export type Experience = {
   role: string;
@@ -70,7 +66,7 @@ export const skills: { group: string; items: string[] }[] = [
   { group: "Languages", items: ["Python", "SQL", "JavaScript", "TypeScript"] },
   {
     group: "Backend",
-    items: ["Node.js", "Express", "FastAPI", "REST APIs", "JWT authentication", "Pydantic", "Zod", "Celery", "Redis", "Database transactions and locking"],
+    items: ["Node.js", "Express", "FastAPI", "REST APIs", "SQLAlchemy", "JWT authentication", "Pydantic", "Zod", "Celery", "Redis", "Database transactions and locking"],
   },
   { group: "Frontend", items: ["React", "Next.js", "Tailwind CSS"] },
   { group: "Data & Infrastructure", items: ["PostgreSQL", "Drizzle ORM", "Docker", "GitHub Actions CI/CD", "Grafana"] },
@@ -80,9 +76,11 @@ export const skills: { group: string; items: string[] }[] = [
       "PyTorch",
       "Hugging Face Transformers",
       "scikit-learn",
+      "pandas",
+      "NumPy",
       "Model evaluation (accuracy, macro-F1)",
       "Multi-agent workflows (Lyzr Agent Studio, LangGraph)",
-      "LLM APIs",
+      "LLM APIs (Gemini, Groq)",
       "RAG",
     ],
   },

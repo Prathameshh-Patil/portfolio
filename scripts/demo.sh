@@ -11,7 +11,7 @@ if [ ! -f .env ]; then
 fi
 
 if [ "${1:-}" != "--yes" ]; then
-  echo "This deletes the local database: contact messages, view counts, publications and admin edits."
+  echo "This deletes the local database: contact messages, view counts and admin edits."
   read -r -p "Continue? [y/N] " answer
   [ "$answer" = "y" ] || [ "$answer" = "Y" ] || { echo "Cancelled."; exit 0; }
 fi

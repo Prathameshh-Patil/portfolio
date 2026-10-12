@@ -1,5 +1,4 @@
 import { Diagram } from "@/components/Diagram";
-import { Todo } from "@/components/CaseStudyParts";
 
 ## Problem
 
@@ -54,4 +53,7 @@ A full-stack event booking platform. Users browse events, hold a seat, and confi
 
 ## What I'd do next
 
-<Todo>add what you would improve or build next.</Todo>
+- **Take a real payment at confirm.** Confirming a hold is exactly where a real checkout would charge the card; today it confirms straight away. The 10-minute hold already exists to give a payment that time.
+- **Send real emails.** Confirmation emails are built and queued but only logged, until a mail provider is chosen.
+- **Move the login token to an httpOnly cookie.** The deployed app already serves the site and the API from one address, which is what makes a cookie with CSRF protection practical.
+- **Give the live demo a database that doesn't expire.** Render's free Postgres is deleted after 30 days, so the demo should move to a permanent one such as Neon.

@@ -19,23 +19,6 @@ export type Project = {
   updatedAt: string;
 };
 
-export type PublicationStatus = "published" | "accepted" | "under_review" | "preprint";
-
-export type Publication = {
-  id: number;
-  title: string;
-  authors: string;
-  venue: string | null;
-  year: number | null;
-  status: PublicationStatus;
-  url: string | null;
-  summary: string;
-  visible: boolean;
-  sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
 export type Message = {
   id: number;
   name: string;
@@ -56,7 +39,6 @@ export type Page<T> = { data: T[]; page: number; limit: number; total: number };
 
 // What the admin can send when creating or editing. Server-managed fields (id, views, dates) are left out.
 export type ProjectInput = Omit<Project, "id" | "views" | "createdAt" | "updatedAt">;
-export type PublicationInput = Omit<Publication, "id" | "createdAt" | "updatedAt">;
 
 export type ContactInput = { name: string; email: string; subject?: string; body: string; website?: string };
 
@@ -94,7 +76,6 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 // ---- Public (used by Server Components) ----
 export const getProjects = () => request<Project[]>("/api/projects");
 export const getProject = (slug: string) => request<Project>(`/api/projects/${encodeURIComponent(slug)}`);
-export const getPublications = () => request<Publication[]>("/api/publications");
 
 // ---- Public (used from the browser) ----
 export const recordView = (slug: string) =>
@@ -135,10 +116,4 @@ export const admin = {
   createProject: (data: ProjectInput) => adminRequest<Project>("/api/admin/projects", json("POST", data)),
   updateProject: (id: number, data: Partial<ProjectInput>) => adminRequest<Project>(`/api/admin/projects/${id}`, json("PATCH", data)),
   deleteProject: (id: number) => adminRequest<void>(`/api/admin/projects/${id}`, { method: "DELETE" }),
-
-  publications: () => adminRequest<Publication[]>("/api/admin/publications"),
-  createPublication: (data: PublicationInput) => adminRequest<Publication>("/api/admin/publications", json("POST", data)),
-  updatePublication: (id: number, data: Partial<PublicationInput>) =>
-    adminRequest<Publication>(`/api/admin/publications/${id}`, json("PATCH", data)),
-  deletePublication: (id: number) => adminRequest<void>(`/api/admin/publications/${id}`, { method: "DELETE" }),
 };

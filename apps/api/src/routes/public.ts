@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
-import { messages, projects, publications } from "../db/schema.js";
+import { messages, projects } from "../db/schema.js";
 import { asyncHandler, HttpError } from "../lib/errors.js";
 import type { Mailer } from "../services/email.js";
 
@@ -61,19 +61,6 @@ export function publicRouter(db: Db, mailer: Mailer, opts: { contactLimit: numbe
         .returning({ views: projects.views });
       if (!row) throw new HttpError(404, "Project not found");
       res.json(row);
-    }),
-  );
-
-  // GET /api/publications : visible publications in the admin's order, newest first within that
-  router.get(
-    "/publications",
-    asyncHandler(async (_req, res) => {
-      const rows = await db
-        .select()
-        .from(publications)
-        .where(eq(publications.visible, true))
-        .orderBy(asc(publications.sortOrder), sql`${publications.year} desc nulls last`, desc(publications.id));
-      res.json(rows);
     }),
   );
 

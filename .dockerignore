@@ -5,8 +5,6 @@
 .env
 .git
 apps/api/tests
-# Only the three public resumes go into the image (same rule as .gitignore).
+# Only the public resume goes into the image (same rule as .gitignore).
 apps/web/public/resume/*
-!apps/web/public/resume/Prathamesh_Patil_SDE.pdf
-!apps/web/public/resume/Prathamesh_Patil_AI_Engineer.pdf
-!apps/web/public/resume/Prathamesh_Patil_FDE.pdf
+!apps/web/public/resume/Prathamesh_Patil_Resume.pdf

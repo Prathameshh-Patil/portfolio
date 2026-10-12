@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("public pages", () => {
-  test("home page loads with headline, featured projects and no Research link", async ({ page }) => {
+  test("home page loads with headline and featured projects", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveTitle("Prathamesh Patil");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Full-stack engineer");
@@ -9,8 +9,6 @@ test.describe("public pages", () => {
     const featured = page.locator("section", { has: page.getByRole("heading", { name: "Featured projects" }) });
     await expect(featured.getByRole("article")).toHaveCount(3);
     await expect(featured.getByRole("link", { name: "Slotwise: Event Booking Platform", exact: true })).toBeVisible();
-    // No publications in the mock API, so Research stays out of the nav.
-    await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Research" })).toHaveCount(0);
   });
 
   test("project page loads the case study and records a view", async ({ page }) => {
