@@ -11,7 +11,7 @@ An AI support inbox with human approval.
 
 - **Four single-purpose agents** handle each customer message: one sorts it by category and urgency, one extracts its details, one drafts a reply, and one checks the draft.
 - **A human support agent** then approves, edits or rejects the draft. Nothing is sent without a human decision.
-- **Stack:** Next.js, FastAPI, PostgreSQL and Lyzr Agent Studio, running in Docker.
+- **Stack:** Next.js and TypeScript, FastAPI with SQLAlchemy and Pydantic, PostgreSQL with Alembic, running in Docker. Each agent is a prompt file run through one OpenAI-compatible client, currently on gpt-oss-120b via Groq.
 
 ## Architecture
 
@@ -43,13 +43,14 @@ The dashed arrow applies to every agent step, not only extraction: any output th
 ## Key decisions and trade-offs
 
 - **Orchestration in plain Python, not inside the agent tool.** Step order, storage and business rules are ordinary Python code. When something fails, it points to one step, and the pipeline can be re-run from that step instead of from the start.
+- **The model provider is configuration, not code.** The rest of the code only knows `call_agent(agent_name, message)`. The provider changed during the build and the pipeline and its tests didn't have to.
 - **Small agents with one job each.** Four focused agents are easier to test and debug than one agent that does everything, at the cost of more calls per message.
 - **Validate every agent output.** Each output is checked against a Pydantic schema. If it fails, the step is retried once; if it fails again, the message goes to a manual-handling queue instead of moving on with bad data.
 - **A human approves every reply.** This is slower than sending automatically, but it means an AI mistake never reaches a customer without a person seeing it.
 
 ## Results
 
-The pipeline was scored on **60 labelled messages**:
+A set of **60 labelled messages** (`eval/emails.csv`) defines the expected category, urgency and details for each message. Scores from running the pipeline on it:
 
 <MetricsTable
   columns={["Metric", "Result"]}

@@ -1,10 +1,10 @@
 // Small building blocks used inside the case-study MDX files.
 
 // A clearly visible placeholder for facts I still need to fill in. Never replace with made-up numbers.
-export function Todo({ children = "add from repo results" }: { children?: React.ReactNode }) {
+export function Todo({ children = "add from repo results", label = "TODO" }: { children?: React.ReactNode; label?: string }) {
   return (
     <p className="my-4 rounded-md border border-dashed border-muted/60 px-4 py-3 text-sm text-muted">
-      <span className="mr-2 font-mono text-xs font-medium text-text">TODO:</span>
+      <span className="mr-2 font-mono text-xs font-medium text-text">{label}:</span>
       {children}
     </p>
   );

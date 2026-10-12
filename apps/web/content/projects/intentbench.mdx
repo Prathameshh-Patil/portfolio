@@ -1,26 +1,28 @@
 import { Diagram } from "@/components/Diagram";
 import { MetricsTable, Todo } from "@/components/CaseStudyParts";
 
+<Todo label="Status">In progress. The classical baseline and the fine-tuned model are done; the LLM comparison, final test-set evaluation and serving are next.</Todo>
+
 ## Problem
 
 For a text classification task there are three very different options: a classical model, a fine-tuned transformer, or an LLM prompted with no or few examples. They differ a lot in accuracy, speed and cost, and the right choice depends on all three, not just accuracy.
 
-## What I built
+## What I'm building
 
-A side-by-side comparison on **150 intents (CLINC150)**:
+A side-by-side comparison on **CLINC150** (`plus` configuration): short user queries labelled with **150 intents plus out-of-scope**.
 
-- **TF-IDF + logistic regression** (scikit-learn)
-- **Fine-tuned DistilBERT** (PyTorch, Hugging Face Transformers)
-- **Zero-shot and few-shot LLM classification**
+- **TF-IDF + logistic regression** (scikit-learn). Done.
+- **Fine-tuned DistilBERT** (PyTorch, Hugging Face Transformers). Done.
+- **Zero-shot and few-shot LLM classification.** Planned.
 
-All approaches were measured on **one held-out test set** for accuracy, macro-F1, p95 latency and cost per 1,000 requests. I then analysed the most confused intent pairs to decide what to ship, and served the chosen model behind a FastAPI endpoint.
+The plan is to measure all approaches on one held-out test set for accuracy, macro-F1, p95 latency and cost per 1,000 requests, look at the most confused intent pairs, and serve the chosen model behind a FastAPI endpoint.
 
 ## Architecture
 
 <Diagram
-  title="IntentBench: three approaches evaluated on the same test set; the chosen model is served behind FastAPI with a confidence threshold."
+  title="IntentBench: three approaches evaluated on the same data; the chosen model will be served behind FastAPI with a confidence threshold. Dashed parts are planned."
   nodes={[
-    { id: "data", label: "CLINC150", sub: "150 intents · held-out test", col: 0, row: 1 },
+    { id: "data", label: "CLINC150", sub: "150 intents + out-of-scope", col: 0, row: 1 },
     { id: "tfidf", label: "TF-IDF + LogReg", sub: "scikit-learn", col: 1, row: 0 },
     { id: "bert", label: "DistilBERT", sub: "fine-tuned", col: 1, row: 1 },
     { id: "llm", label: "LLM", sub: "zero-shot / few-shot", col: 1, row: 2 },
@@ -30,35 +32,40 @@ All approaches were measured on **one held-out test set** for accuracy, macro-F1
   edges={[
     { from: "data", to: "tfidf" },
     { from: "data", to: "bert" },
-    { from: "data", to: "llm" },
+    { from: "data", to: "llm", dashed: true },
     { from: "tfidf", to: "eval" },
     { from: "bert", to: "eval" },
-    { from: "llm", to: "eval" },
-    { from: "eval", to: "api", label: "chosen" },
+    { from: "llm", to: "eval", dashed: true },
+    { from: "eval", to: "api", label: "chosen", dashed: true },
   ]}
 />
 
 ## Key decisions and trade-offs
 
-- **One test set for every approach.** Comparing all models on the same held-out data is what makes the numbers comparable.
+- **The same data for every approach.** Comparing all models on the same splits is what makes the numbers comparable.
+- **Choose hyperparameters on validation, report on test.** Each approach is tuned on the validation set (selected by macro-F1); the held-out test set is kept for the final comparison so it doesn't leak into model choice.
 - **Measure cost and latency, not only accuracy.** A model that is slightly more accurate but much slower or more expensive per request may be the wrong thing to ship.
-- **Look at the confusions, not just the score.** Analysing the most confused intent pairs shows *where* a model fails, which matters when choosing between models with similar scores.
-- **Say "I don't know" when unsure.** The endpoint validates input with Pydantic and uses a confidence threshold: queries the model is unsure about get an out-of-scope response instead of a confident wrong intent.
+- **Plan for "I don't know".** The endpoint will validate input with Pydantic and use a confidence threshold, so queries the model is unsure about get an out-of-scope response instead of a confident wrong intent.
 
-## Results
+## Results so far
+
+Validation set (3,096 queries). These are not the final test-set numbers.
 
 <MetricsTable
-  columns={["Approach", "Accuracy", "Macro-F1", "p95 latency", "Cost / 1,000 requests"]}
+  columns={["Approach", "Accuracy", "Macro-F1", "Out-of-scope F1"]}
   rows={[
-    ["TF-IDF + logistic regression", "TODO", "TODO", "TODO", "TODO"],
-    ["Fine-tuned DistilBERT", "TODO", "TODO", "TODO", "TODO"],
-    ["LLM zero-shot", "TODO", "TODO", "TODO", "TODO"],
-    ["LLM few-shot", "TODO", "TODO", "TODO", "TODO"],
+    ["TF-IDF (char 2–5-grams) + logistic regression", "90.8%", "91.3%", "0.70"],
+    ["Fine-tuned DistilBERT (8 epochs)", "95.6%", "96.0%", "0.80"],
+    ["LLM zero-shot / few-shot", "TODO", "TODO", "TODO"],
   ]}
 />
 
-<Todo>add the numbers from the repo results, which model was shipped, and the most confused intent pairs.</Todo>
+Fine-tuning improves macro-F1 by about 4.7 points over the classical baseline on validation. Out-of-scope detection is the weakest area for both, which is what the confidence threshold is meant to address.
+
+<Todo>add test-set accuracy, macro-F1, p95 latency and cost per 1,000 requests for every approach, and the most confused intent pairs.</Todo>
 
 ## What I'd do next
 
-<Todo>add what you would improve or build next.</Todo>
+- Run the zero-shot and few-shot LLM classifiers.
+- Evaluate every approach once on the held-out test set, with p95 latency and cost per 1,000 requests.
+- Serve the chosen model behind FastAPI with the confidence threshold.

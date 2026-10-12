@@ -11,17 +11,18 @@ A full-stack event booking platform. Users browse events, hold a seat, and confi
 
 - **Frontend:** Next.js and TypeScript.
 - **API:** FastAPI, with PostgreSQL as the source of truth.
-- **Background work:** Celery workers with Redis send confirmation emails and release seat holds that have expired.
+- **Booking rules:** picking seats creates an order that holds them for 10 minutes unless it is confirmed. A multi-seat order is all or nothing.
+- **Background work:** Celery workers with Redis send confirmation emails, and Celery beat checks for expired holds every 30 seconds.
 - **Running it:** the whole stack starts with one Docker Compose command, and the tests run in GitHub Actions on every push.
 
 ## Architecture
 
 <Diagram
-  title="Slotwise: the API does the booking inside a database transaction; slow work goes to Celery through Redis."
+  title="Slotwise: the database guarantees one active booking per seat; slow work goes to Celery through Redis."
   nodes={[
     { id: "web", label: "Next.js", sub: "browse · hold · confirm", col: 0, row: 0 },
     { id: "api", label: "FastAPI", sub: "JWT · user / admin", col: 1, row: 0 },
-    { id: "db", label: "PostgreSQL", sub: "row lock + unique constraint", col: 2, row: 0, accent: true },
+    { id: "db", label: "PostgreSQL", sub: "partial unique index", col: 2, row: 0, accent: true },
     { id: "redis", label: "Redis", sub: "task queue", col: 1, row: 1 },
     { id: "worker", label: "Celery workers", sub: "emails · expire holds", col: 2, row: 1 },
   ]}
@@ -36,13 +37,16 @@ A full-stack event booking platform. Users browse events, hold a seat, and confi
 
 ## Key decisions and trade-offs
 
-- **Two layers of protection against double booking.** A seat is held with row-level locking inside a database transaction, so two requests for the same seat are handled one after the other instead of both succeeding. A unique constraint backs this up: even if the application logic had a bug, the database itself refuses a second booking for the same seat.
-- **Timed holds before confirmation.** Holding a seat gives the user time to confirm without someone else taking it. Because holds expire and a worker releases them, an abandoned hold doesn't block the seat forever.
+- **Let the database enforce the rule.** The bookings table has a partial unique index: at most one `held` or `confirmed` booking per seat. When two requests try to hold the same seat at once, both inserts reach Postgres; the second waits for the first to commit, then fails with a unique violation, and the API returns `409 Conflict`. There is no "check, then insert" in application code, which is exactly the pattern that breaks under concurrency.
+- **All-or-nothing orders without deadlocks.** Every seat in an order is inserted in one transaction, so if one seat is taken the whole order rolls back. Seats are always inserted in id order, so two overlapping orders wait for each other instead of deadlocking.
+- **Timed holds before confirmation.** A hold gives the user 10 minutes to confirm without someone else taking the seat. Because holds expire, an abandoned hold doesn't block the seat forever.
 - **Slow work in background jobs.** Confirmation emails and hold expiry run on Celery workers with Redis, so the booking request returns immediately. The cost is two more moving parts (Redis and a worker process) to run and monitor.
 
 ## Results
 
-- A test fires **50 simultaneous bookings at one seat** and asserts that **exactly one succeeds**.
+- `test_concurrency.py` releases **12 threads at the same instant against one seat** and asserts that **exactly one wins** and the rest get `409`. With the unique index dropped, the same test fails.
+- Further tests cover overlapping multi-seat orders (no seat shared, no deadlock) and simultaneous HTTP requests (one `201`, the rest `409`).
+- `scripts/race_demo.py` runs the same race against the running API, with **50 users** by default.
 - Tests run in **GitHub Actions on every push**.
 
 ## What I'd do next

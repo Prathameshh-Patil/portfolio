@@ -1,5 +1,5 @@
 import { Diagram } from "@/components/Diagram";
-import { Todo } from "@/components/CaseStudyParts";
+import { MetricsTable } from "@/components/CaseStudyParts";
 
 ## Problem
 
@@ -7,7 +7,7 @@ A loan application arrives as a pile of mixed documents. Someone has to work out
 
 ## What I built
 
-A **12-agent pipeline** that takes a ZIP of mixed loan-application documents, extracts and cross-checks them, and returns **one underwriting summary with confidence scores and risk flags**.
+A **12-agent pipeline** that takes a ZIP of mixed loan-application documents (PDFs, scanned images, spreadsheets, emails), classifies each one, extracts and cross-checks them, and returns **one underwriting summary with confidence scores and risk flags**. It runs on Lyzr Agent Studio (two SuperFlows, 12 agents) with a Python orchestration layer.
 
 - **Stack:** Python, Lyzr Agent Studio and Tesseract OCR.
 - **Deterministic core:** joining the results, merging them, and the completeness gate are ordinary code, not agents.
@@ -39,12 +39,28 @@ A **12-agent pipeline** that takes a ZIP of mixed loan-application documents, ex
 
 - **Agents for reading, code for deciding.** Agents handle the messy part: understanding documents and pulling out details. Joining, merging and the completeness gate are deterministic code, so the same inputs always give the same result and the logic can be tested directly.
 - **Validate identifiers with rules, not a model.** PAN, Aadhaar, GSTIN and IFSC have known formats. Checking them in code is exact and cheap, and a malformed identifier becomes a fraud signal instead of being quietly accepted.
-- **Confidence scores and risk flags, not a yes/no.** The output supports an underwriter's decision rather than replacing it.
+- **Two phases, because the work has two cardinalities.** Classification and extraction happen once per document; cross-checking, risk and the underwriting summary happen once per application. The orchestrator owns the fan-out and the join. Chaining everything into one flow doesn't error, it silently produces one partial summary per document.
+- **Confidence is computed, not self-reported.** Extractors report observable facts (was the field found, how legible was the source); Python turns those plus the format and checksum checks into a score. Clean text with a failing checksum isn't a bad scan, it's a likely fabricated identifier, so it is flagged for review.
+- **Failure is an output, not an exception.** A corrupt file flows through as a `failed` extraction instead of crashing the run. Missing mandatory documents stop the run at `incomplete_application` before risk assessment, because a confident score built on missing evidence is worse than no answer.
 
 ## Results
 
-<Todo />
+The demo runs three sample applications:
+
+<MetricsTable
+  columns={["Sample bundle", "What it tests", "Result"]}
+  rows={[
+    ["Complete", "All six document types, one blurred scan needing OCR", "approve_with_conditions, confidence 0.94"],
+    ["Mismatch", "Planted identity and income contradictions", "decline, six hard flags"],
+    ["Incomplete", "Missing bank statement, one corrupt PDF", "incomplete_application; the gate fires before assessment"],
+  ]}
+/>
+
+The Lyzr account ran out of inference credits during testing, so the demo replays captured agent output. Everything else runs for real: ingestion, OCR, checksum validation, confidence scoring, assembly, the completeness gate and phase 2. Switching back to live agent calls is one setting, because the transport sits behind a small interface with live, replay-from-disk and in-memory implementations.
 
 ## What I'd do next
 
-<Todo>add what you would improve or build next.</Todo>
+- **An evaluation set.** Labelled documents per type with expected output, run as a regression suite. Today prompt changes have no safety net; this is the biggest gap between this and something production-ready.
+- **Per-flag confidence.** Weight each risk flag by the confidence of the fields behind it, instead of applying one global penalty.
+- **A human review queue** for low-confidence fields. Every field already carries its confidence and the text it was read from.
+- **A work queue instead of a thread pool**, with per-document idempotency so a partly failed application resumes instead of starting over.

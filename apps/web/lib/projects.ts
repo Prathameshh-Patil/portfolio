@@ -16,7 +16,7 @@ export const staticProjects: ProjectSummary[] = [
     slug: "slotwise",
     title: "Slotwise: Event Booking Platform",
     summary:
-      "Full-stack booking site with seat holds, JWT auth and admin roles. Row-level locking inside a transaction prevents double booking; a test fires 50 simultaneous bookings at one seat and asserts exactly one succeeds.",
+      "Full-stack booking site with timed seat holds, JWT auth and admin roles. A partial unique index lets the database allow only one active booking per seat; a test releases 12 simultaneous requests at one seat and asserts exactly one succeeds.",
     techStack: ["Next.js", "TypeScript", "FastAPI", "PostgreSQL", "Celery", "Redis", "Docker"],
     repoUrl: "https://github.com/Prathameshh-Patil/slotwise",
     demoUrl: null,
@@ -26,8 +26,8 @@ export const staticProjects: ProjectSummary[] = [
     slug: "replydesk",
     title: "ReplyDesk: AI Support Inbox with Human Approval",
     summary:
-      "Support inbox where four single-purpose agents sort, extract, draft and check replies, and a human approves, edits or rejects every draft. Agent outputs are schema-validated and the pipeline is scored on 60 labelled messages.",
-    techStack: ["Next.js", "FastAPI", "PostgreSQL", "Lyzr Agent Studio", "Docker"],
+      "Support inbox where four single-purpose agents sort, extract, draft and check replies, and a human approves, edits or rejects every draft. Every agent output is schema-validated with one retry, and 60 labelled messages define the expected results.",
+    techStack: ["Next.js", "TypeScript", "FastAPI", "PostgreSQL", "Pydantic", "gpt-oss-120b on Groq", "Docker"],
     repoUrl: "https://github.com/Prathameshh-Patil/replydesk",
     demoUrl: null,
     featured: true,
@@ -36,7 +36,7 @@ export const staticProjects: ProjectSummary[] = [
     slug: "intentbench",
     title: "IntentBench: Classical vs Fine-Tuned vs LLM Classification",
     summary:
-      "Compared TF-IDF + logistic regression, fine-tuned DistilBERT and LLM zero-shot classification on CLINC150 for accuracy, macro-F1, latency and cost, then served the chosen model behind FastAPI.",
+      "In progress: comparing TF-IDF + logistic regression, fine-tuned DistilBERT and LLM classification on CLINC150 (150 intents). On validation so far, DistilBERT reaches 96.0% macro-F1 against 91.3% for the TF-IDF baseline.",
     techStack: ["PyTorch", "Hugging Face", "scikit-learn", "FastAPI"],
     repoUrl: "https://github.com/Prathameshh-Patil/intentbench",
     demoUrl: null,
