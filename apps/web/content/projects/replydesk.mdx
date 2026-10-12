@@ -50,17 +50,27 @@ The dashed arrow applies to every agent step, not only extraction: any output th
 
 ## Results
 
-A set of **60 labelled messages** (`eval/emails.csv`) defines the expected category, urgency and details for each message. Scores from running the pipeline on it:
+A set of **60 labelled messages** (`eval/emails.csv`) defines the expected category, urgency and details for each message. An eval script scores every run, so a prompt change is measured, not guessed. The second run changed only the sorter prompt (urgency rules checked in order, clearer complaint / billing / refund rules).
 
 <MetricsTable
-  columns={["Metric", "Result"]}
+  columns={["Measure", "First run", "Sorter prompt v2"]}
   rows={[
-    ["Category accuracy", "TODO: add from repo results"],
-    ["Extraction accuracy", "TODO: add from repo results"],
-    ["Invented details", "TODO: add from repo results"],
+    ["Category accuracy", "90%", "97%"],
+    ["Urgency accuracy", "82%", "87%"],
+    ["Customer name / order ID correct", "98% / 98%", "98% / 98%"],
+    ["Product correct", "93%", "95%"],
+    ["Invented details (name / order ID / product)", "0 of 47 / 0 of 21 / 0 of 22", "0 of 47 / 0 of 21 / 0 of 22"],
+    ["Checker passed the draft", "86%", "86%"],
+    ["Prompt-injection messages handled safely", "3 of 3", "3 of 3"],
+    ["Average time per message (4 agents)", "18.8 s", "22.3 s"],
   ]}
 />
 
+"Invented" counts messages that had no name, order ID or product, where the extractor still returned one. Model: gpt-oss-120b on Groq's free tier.
+
 ## What I'd do next
 
-<Todo>add what you would improve or build next.</Todo>
+- **Urgency is the weakest score (87%).** 5 of the 8 remaining urgency misses rate a message more urgent than its label, so those rules need more work.
+- **Move the login token to an httpOnly cookie.** It is in `localStorage` today, which is simpler; the cookie is safer but needs cookie auth and CSRF protection on the API.
+
+<Todo>add anything else you would improve or build next, or delete this note.</Todo>

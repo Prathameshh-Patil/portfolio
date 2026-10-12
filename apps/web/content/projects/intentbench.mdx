@@ -1,71 +1,85 @@
 import { Diagram } from "@/components/Diagram";
-import { MetricsTable, Todo } from "@/components/CaseStudyParts";
-
-<Todo label="Status">In progress. The classical baseline and the fine-tuned model are done; the LLM comparison, final test-set evaluation and serving are next.</Todo>
+import { MetricsTable } from "@/components/CaseStudyParts";
 
 ## Problem
 
-For a text classification task there are three very different options: a classical model, a fine-tuned transformer, or an LLM prompted with no or few examples. They differ a lot in accuracy, speed and cost, and the right choice depends on all three, not just accuracy.
+For a text classification task there are three very different options: a classical model, a fine-tuned transformer, or an LLM prompted with a few examples. They differ a lot in accuracy, speed and cost, and the right choice depends on all three, not just accuracy. The question: when is a simple model enough, when is fine-tuning worth it, and when should you just call an LLM?
 
-## What I'm building
+## What I built
 
 A side-by-side comparison on **CLINC150** (`plus` configuration): short user queries labelled with **150 intents plus out-of-scope**.
 
-- **TF-IDF + logistic regression** (scikit-learn). Done.
-- **Fine-tuned DistilBERT** (PyTorch, Hugging Face Transformers). Done.
-- **Zero-shot and few-shot LLM classification.** Planned.
-
-The plan is to measure all approaches on one held-out test set for accuracy, macro-F1, p95 latency and cost per 1,000 requests, look at the most confused intent pairs, and serve the chosen model behind a FastAPI endpoint.
+- **TF-IDF + logistic regression** (scikit-learn).
+- **Fine-tuned DistilBERT** (PyTorch, Hugging Face Transformers), with an out-of-scope **confidence threshold of 0.69** chosen on validation.
+- **An LLM** (Gemini 3.5 Flash-Lite), zero-shot and few-shot, behind one function so the provider can be swapped.
+- **Serving:** the chosen model runs behind a **FastAPI** endpoint in a small CPU-only Docker image, and an **int8 ONNX** copy runs **in the browser** with transformers.js on GitHub Pages (it agrees with the full model on 99.7% of validation queries).
+- Tests, lint and formatting run in GitHub Actions on every push.
 
 ## Architecture
 
 <Diagram
-  title="IntentBench: three approaches evaluated on the same data; the chosen model will be served behind FastAPI with a confidence threshold. Dashed parts are planned."
+  title="IntentBench: three approaches evaluated on the same data; the test set is used once; the winner is served with an out-of-scope threshold."
   nodes={[
     { id: "data", label: "CLINC150", sub: "150 intents + out-of-scope", col: 0, row: 1 },
     { id: "tfidf", label: "TF-IDF + LogReg", sub: "scikit-learn", col: 1, row: 0 },
     { id: "bert", label: "DistilBERT", sub: "fine-tuned", col: 1, row: 1 },
-    { id: "llm", label: "LLM", sub: "zero-shot / few-shot", col: 1, row: 2 },
-    { id: "eval", label: "Evaluation", sub: "accuracy · F1 · p95 · cost", col: 2, row: 1 },
-    { id: "api", label: "FastAPI endpoint", sub: "confidence threshold", col: 3, row: 1, accent: true },
+    { id: "llm", label: "Gemini LLM", sub: "zero- / few-shot", col: 1, row: 2 },
+    { id: "eval", label: "Evaluation", sub: "test set, once", col: 2, row: 1 },
+    { id: "api", label: "FastAPI + browser", sub: "threshold 0.69", col: 3, row: 1, accent: true },
   ]}
   edges={[
     { from: "data", to: "tfidf" },
     { from: "data", to: "bert" },
-    { from: "data", to: "llm", dashed: true },
+    { from: "data", to: "llm" },
     { from: "tfidf", to: "eval" },
     { from: "bert", to: "eval" },
-    { from: "llm", to: "eval", dashed: true },
-    { from: "eval", to: "api", label: "chosen", dashed: true },
+    { from: "llm", to: "eval" },
+    { from: "eval", to: "api", label: "chosen" },
   ]}
 />
 
 ## Key decisions and trade-offs
 
 - **The same data for every approach.** Comparing all models on the same splits is what makes the numbers comparable.
-- **Choose hyperparameters on validation, report on test.** Each approach is tuned on the validation set (selected by macro-F1); the held-out test set is kept for the final comparison so it doesn't leak into model choice.
-- **Measure cost and latency, not only accuracy.** A model that is slightly more accurate but much slower or more expensive per request may be the wrong thing to ship.
-- **Plan for "I don't know".** The endpoint will validate input with Pydantic and use a confidence threshold, so queries the model is unsure about get an out-of-scope response instead of a confident wrong intent.
+- **Choose on validation, report on test, once.** Hyperparameters and the threshold were picked on validation; the held-out test set was evaluated a single time at the end, so it didn't leak into any choice.
+- **Measure cost and latency, not only accuracy.** A slightly more accurate model that is much slower or costs money per request may be the wrong thing to ship.
+- **Plan for "I don't know".** Below the 0.69 confidence threshold the API answers `out_of_scope` instead of a confident wrong intent.
+- **Cache every LLM answer.** Each answer is stored as one JSON file, so re-running the evaluation makes no API calls. To stay on the free tier, the LLM ran on a fixed 400-query test sample.
 
-## Results so far
+## Results
 
-Validation set (3,096 queries). These are not the final test-set numbers.
+**All three on the same 400-query test sample:**
 
 <MetricsTable
-  columns={["Approach", "Accuracy", "Macro-F1", "Out-of-scope F1"]}
+  columns={["Approach", "Accuracy", "Out-of-scope recall", "p95 latency", "Cost / 1,000 requests"]}
   rows={[
-    ["TF-IDF (char 2–5-grams) + logistic regression", "90.8%", "91.3%", "0.70"],
-    ["Fine-tuned DistilBERT (8 epochs)", "95.6%", "96.0%", "0.80"],
-    ["LLM zero-shot / few-shot", "TODO", "TODO", "TODO"],
+    ["TF-IDF + logistic regression", "0.838", "0.54", "0.4 ms", "$0 (self-hosted)"],
+    ["DistilBERT + threshold (served)", "0.910", "0.77", "24 ms", "$0 (self-hosted)"],
+    ["LLM few-shot (Gemini 3.5 Flash-Lite)", "0.897", "0.83", "8,723 ms", "$0.67"],
   ]}
 />
 
-Fine-tuning improves macro-F1 by about 4.7 points over the classical baseline on validation. Out-of-scope detection is the weakest area for both, which is what the confidence threshold is meant to address.
+**Local models on the full test set** (5,500 queries, 1,000 out-of-scope):
 
-<Todo>add test-set accuracy, macro-F1, p95 latency and cost per 1,000 requests for every approach, and the most confused intent pairs.</Todo>
+<MetricsTable
+  columns={["Approach", "Accuracy", "Macro-F1", "Out-of-scope precision / recall"]}
+  rows={[
+    ["TF-IDF + logistic regression", "0.843", "0.877", "0.91 / 0.51"],
+    ["DistilBERT, no threshold", "0.892", "0.920", "0.98 / 0.59"],
+    ["DistilBERT + threshold 0.69 (served)", "0.918", "0.939", "0.87 / 0.78"],
+  ]}
+/>
 
-## What I'd do next
+Local latency is one request at a time on an Apple M5 CPU; LLM latency is the network round trip. LLM cost uses Gemini's paid-tier token price; the runs themselves used the free tier.
 
-- Run the zero-shot and few-shot LLM classifiers.
-- Evaluate every approach once on the held-out test set, with p95 latency and cost per 1,000 requests.
-- Serve the chosen model behind FastAPI with the confidence threshold.
+- **Fine-tuned DistilBERT is the one to ship** with about 100 labelled examples per intent: the most accurate, about 130x faster than the LLM, and free per request.
+- **The threshold matters as much as the model.** It lifts out-of-scope recall from 0.59 to 0.78 for under 1 point of in-scope accuracy.
+- **The LLM is the best out-of-scope detector with zero training** (recall 0.83), but it is slower, costs money per call, and is weaker on near-identical intents.
+- **Most errors are out-of-scope queries** that look like a real intent (for example "where can i buy new shingles" predicted as `order`). The most confused pair of real intents is `redeem_rewards` → `rewards_balance`.
+
+## Limits and what I'd do next
+
+- The LLM was measured on 400 test queries, not 5,500, so its numbers have wider error bars. Only one LLM and one prompt family were tried.
+- Validation has 3% out-of-scope queries and test has 18%, so the best threshold on real traffic depends on how often users go off-topic.
+- Probabilities are over-confident. Next: calibrate them (for example temperature scaling), then re-pick the threshold.
+- Use the ONNX export for a smaller, faster CPU image; try retrieval-based few-shot examples for the LLM; check the conclusions on a second dataset such as BANKING77.

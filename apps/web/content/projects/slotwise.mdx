@@ -12,8 +12,10 @@ A full-stack event booking platform. Users browse events, hold a seat, and confi
 - **Frontend:** Next.js and TypeScript.
 - **API:** FastAPI, with PostgreSQL as the source of truth.
 - **Booking rules:** picking seats creates an order that holds them for 10 minutes unless it is confirmed. A multi-seat order is all or nothing.
+- **Booking history:** every status change (held, confirmed, cancelled, expired) is appended to an `order_history` table, recording whether a person or the system made it. Rows are never edited, and each booking keeps the price it was sold at.
 - **Background work:** Celery workers with Redis send confirmation emails, and Celery beat checks for expired holds every 30 seconds.
 - **Running it:** the whole stack starts with one Docker Compose command, and the tests run in GitHub Actions on every push.
+- **Live demo:** deployed on Render's free plan through a Blueprint (`render.yaml`), redeploying on every push. Log in as `demo@slotwise.dev` / `demo12345`. The free instance sleeps when idle, so the first visit can take about a minute.
 
 ## Architecture
 
@@ -41,6 +43,7 @@ A full-stack event booking platform. Users browse events, hold a seat, and confi
 - **All-or-nothing orders without deadlocks.** Every seat in an order is inserted in one transaction, so if one seat is taken the whole order rolls back. Seats are always inserted in id order, so two overlapping orders wait for each other instead of deadlocking.
 - **Timed holds before confirmation.** A hold gives the user 10 minutes to confirm without someone else taking the seat. Because holds expire, an abandoned hold doesn't block the seat forever.
 - **Slow work in background jobs.** Confirmation emails and hold expiry run on Celery workers with Redis, so the booking request returns immediately. The cost is two more moving parts (Redis and a worker process) to run and monitor.
+- **One container on the free host.** Render's free plan allows one web service and no workers, so the deployed image runs FastAPI, Next.js and a Caddy reverse proxy together, and tasks run inline. Seats still free up on time because hold expiry is checked against the clock, not only by the background job.
 
 ## Results
 
