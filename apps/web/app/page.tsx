@@ -2,10 +2,18 @@ import { ApiErrorNotice } from "@/components/ApiErrorNotice";
 import { ButtonLink } from "@/components/ButtonLink";
 import { Container } from "@/components/Container";
 import { ExperienceList } from "@/components/ExperienceList";
+import { HeroBackdrop } from "@/components/HeroBackdrop";
+import { Download, GitHub, LinkedIn, Mail } from "@/components/icons";
 import { ProjectCard } from "@/components/ProjectCard";
 import { SectionHeading } from "@/components/SectionHeading";
-import { experience, profile, resumes } from "@/lib/profile";
+import { StatusPill } from "@/components/StatusPill";
 import { getProjects, type Project } from "@/lib/api";
+import { coreStack, education, experience, profile, resumes } from "@/lib/profile";
+
+// Staggered entrance: each block fades up a little after the previous one. The animation class is
+// motion-safe:, so people who ask for reduced motion see everything immediately.
+const FADE = "motion-safe:animate-fade-up";
+const delay = (step: number) => ({ animationDelay: `${step * 70}ms` });
 
 export default async function HomePage() {
   // If the API is down, the rest of the page still renders; only this section shows an error.
@@ -16,44 +24,82 @@ export default async function HomePage() {
     featured = null;
   }
 
+  const facts = [
+    `B.E. AI & ML, DSATM · ${education.period} · ${education.grade}`,
+    "11 months of internships building backend and LLM services",
+    `Open to ${profile.openTo.join(", ")} roles`,
+  ];
+
   return (
     <>
-      <section className="pb-8 pt-16 sm:pb-12 sm:pt-24">
-        <Container>
-          <p className="font-mono text-xs uppercase tracking-widest text-accent">
-            {profile.name} · {profile.location}
-          </p>
-          <h1 className="mt-5 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl sm:leading-[1.1]">
-            {profile.headline}
+      <section className="relative isolate">
+        <HeroBackdrop />
+        <Container className="pb-16 pt-16 sm:pb-20 sm:pt-24">
+          <div className={FADE} style={delay(0)}>
+            <StatusPill>
+              Available to join immediately · {profile.city}
+            </StatusPill>
+          </div>
+
+          <h1
+            className={`${FADE} mt-7 max-w-4xl text-4xl font-semibold leading-[1.08] tracking-tight sm:text-6xl`} style={delay(1)}
+          >
+            <span className="text-gradient">Full-stack engineer who builds </span>
+            <span className="text-gradient-accent">AI-backed products</span>
+            <span className="text-gradient">, from database to deployed app.</span>
           </h1>
-          <p className="mt-6 max-w-2xl leading-relaxed text-muted sm:text-lg">{profile.bio}</p>
 
-          <p className="mt-6 max-w-2xl text-sm leading-relaxed">
-            <span className="mr-2 inline-flex items-center gap-1.5 font-medium">
-              <span className="h-2 w-2 rounded-full bg-accent" aria-hidden="true" />
-              Open to:
-            </span>
-            {profile.openTo.join(", ")} roles. {profile.availability}
+          <p className={`${FADE} mt-6 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl`} style={delay(2)}>
+            {profile.summary}
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <ul className={`${FADE} mt-6 flex max-w-3xl flex-col gap-2 text-sm text-muted sm:flex-row sm:flex-wrap sm:gap-x-6`} style={delay(3)}>
+            {facts.map((fact) => (
+              <li key={fact} className="flex items-start gap-2">
+                <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                {fact}
+              </li>
+            ))}
+          </ul>
+
+          <div className={`${FADE} mt-8 flex flex-wrap gap-3`} style={delay(4)}>
             <ButtonLink href={resumes.sde.file} variant="primary" download>
-              Download resume
+              <Download /> Download resume
             </ButtonLink>
-            <ButtonLink href={profile.github} external>GitHub</ButtonLink>
-            <ButtonLink href={profile.linkedin} external>LinkedIn</ButtonLink>
-            <ButtonLink href="/contact">Contact</ButtonLink>
+            <ButtonLink href={profile.github} external>
+              <GitHub /> GitHub
+            </ButtonLink>
+            <ButtonLink href={profile.linkedin} external>
+              <LinkedIn /> LinkedIn
+            </ButtonLink>
+            <ButtonLink href="/contact">
+              <Mail /> Contact
+            </ButtonLink>
+          </div>
+
+          <div className={`${FADE} mt-12 border-t border-border pt-6`} style={delay(5)}>
+            <p className="font-mono text-[11px] uppercase tracking-widest text-muted">Core stack</p>
+            <ul className="mt-3 flex flex-wrap gap-2" aria-label="Core stack">
+              {coreStack.map((tech) => (
+                <li key={tech} className="rounded-md border border-border bg-surface/50 px-2.5 py-1 font-mono text-xs backdrop-blur-md">
+                  {tech}
+                </li>
+              ))}
+            </ul>
           </div>
         </Container>
       </section>
 
-      <section className="py-12" aria-labelledby="featured-heading">
+      <section className="py-12 sm:py-16" aria-labelledby="featured-heading">
         <Container>
-          <SectionHeading label="Selected work" title="Featured projects" href="/projects" linkText="All projects" />
+          <SectionHeading id="featured-heading" label="Selected work" title="Featured projects" href="/projects" linkText="All projects" />
           {featured ? (
-            <div className="grid gap-4 md:grid-cols-3">
-              {featured.map((project) => (
-                <ProjectCard key={project.slug} project={project} />
+            // Bento layout: the first project spans the full width, the next two sit side by side.
+            <div className="grid gap-4 md:grid-cols-2">
+              {featured.map((project, i) => (
+                <div key={project.slug} className={i === 0 ? "md:col-span-2" : ""}>
+                  <ProjectCard project={project} wide={i === 0} />
+                </div>
               ))}
             </div>
           ) : (
@@ -62,9 +108,9 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      <section className="py-12">
+      <section className="py-12 sm:py-16" aria-labelledby="experience-heading">
         <Container>
-          <SectionHeading label="Experience" title="Where I've worked" href="/experience" linkText="Details" />
+          <SectionHeading id="experience-heading" label="Experience" title="Where I've worked" href="/experience" linkText="Details" />
           <ExperienceList items={experience} />
         </Container>
       </section>

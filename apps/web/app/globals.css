@@ -5,30 +5,47 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /* Colour tokens. Components use these names (bg-surface, text-muted...) and never raw colours,
-   so dark mode is just a second set of values. One accent colour: deep teal. */
+   so dark mode is just a second set of values. One accent colour: emerald. */
 :root {
-  --bg: #faf9f7;
+  --bg: #fafafa;
   --surface: #ffffff;
-  --text: #1b1a18;
-  --muted: #5d5952;
-  --border: #e5e1da;
-  --accent: #0d6b5c;
-  --accent-hover: #0a5549;
+  --text: #18181b;
+  --muted: #52525b;
+  --border: #e4e4e7;
+  --accent: #047857;
+  --accent-hover: #065f46;
   --accent-fg: #ffffff;
-  --accent-soft: #e2f0ec;
+  --accent-soft: #ecfdf5;
+  /* Atmosphere: hero glow, dot grid, card top highlight, heading gradient */
+  --glow: rgb(16 185 129 / 0.12);
+  --grid-dot: rgb(24 24 27 / 0.09);
+  --highlight: rgb(255 255 255 / 0.9);
+  --card-shadow: 0 1px 2px rgb(24 24 27 / 0.04), 0 8px 24px -12px rgb(24 24 27 / 0.08);
+  --heading-from: #09090b;
+  --heading-to: #52525b;
+  --accent-from: #047857;
+  --accent-to: #0d9488;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --bg: #121211;
-  --surface: #1a1a18;
-  --text: #ecebe7;
-  --muted: #a5a199;
-  --border: #2d2c29;
-  --accent: #5cc8b2;
-  --accent-hover: #7dd6c3;
-  --accent-fg: #0a1f1b;
-  --accent-soft: #15302a;
+  --bg: #09090b;
+  --surface: #111113;
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --border: rgb(255 255 255 / 0.08);
+  --accent: #34d399;
+  --accent-hover: #6ee7b7;
+  --accent-fg: #022c22;
+  --accent-soft: rgb(52 211 153 / 0.1);
+  --glow: rgb(16 185 129 / 0.16);
+  --grid-dot: rgb(255 255 255 / 0.07);
+  --highlight: rgb(255 255 255 / 0.05);
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --heading-from: #fafafa;
+  --heading-to: #a1a1aa;
+  --accent-from: #6ee7b7;
+  --accent-to: #2dd4bf;
   color-scheme: dark;
 }
 
@@ -42,8 +59,20 @@
   --color-accent-hover: var(--accent-hover);
   --color-accent-fg: var(--accent-fg);
   --color-accent-soft: var(--accent-soft);
-  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @layer base {
@@ -62,5 +91,32 @@
 
   ::selection {
     background: var(--accent-soft);
+  }
+}
+
+@layer components {
+  /* Card surface: hairline border, a 1px inner top highlight (reads as a lit edge in dark mode)
+     and a soft shadow (gives lift in light mode). */
+  .card {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 0.875rem;
+    box-shadow:
+      inset 0 1px 0 0 var(--highlight),
+      var(--card-shadow);
+  }
+
+  /* Gradient text for the hero headline and its highlighted phrase. */
+  .text-gradient {
+    background: linear-gradient(to bottom right, var(--heading-from) 30%, var(--heading-to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-gradient-accent {
+    background: linear-gradient(to right, var(--accent-from), var(--accent-to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }

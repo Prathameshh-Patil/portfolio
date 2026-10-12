@@ -6,6 +6,7 @@ import { ApiErrorNotice } from "@/components/ApiErrorNotice";
 import { ButtonLink } from "@/components/ButtonLink";
 import { Container } from "@/components/Container";
 import { ViewCounter } from "@/components/ViewCounter";
+import { ArrowUpRight, GitHub } from "@/components/icons";
 import { ApiError, getProject, type Project } from "@/lib/api";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -77,13 +78,13 @@ export default async function ProjectPage({ params }: Props) {
         <div className="mt-8 flex flex-wrap gap-3">
           {project.repoUrl && (
             <ButtonLink href={project.repoUrl} variant="primary" external>
-              View code on GitHub
+              <GitHub /> View code on GitHub
             </ButtonLink>
           )}
           {/* Only shown when a real demo URL exists. */}
           {project.demoUrl && (
             <ButtonLink href={project.demoUrl} external>
-              Open demo
+              Open demo <ArrowUpRight />
             </ButtonLink>
           )}
         </div>

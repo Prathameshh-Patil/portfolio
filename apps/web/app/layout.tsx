@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import { loadPublications } from "@/lib/publications";
 import "./globals.css";
 
 // next/font downloads the fonts at build time and serves them from this app (no runtime Google request).
-const plexSans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-plex-sans" });
-const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex-mono" });
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
+const jetbrains = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jetbrains" });
 
 // Every page renders per request: pages show live API data (admin edits appear on the next load), the nav
 // depends on whether Research has entries, and the API isn't reachable during `docker compose build`.
@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     // suppressHydrationWarning: the script above changes data-theme before React hydrates.
-    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${geist.variable} ${jetbrains.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
