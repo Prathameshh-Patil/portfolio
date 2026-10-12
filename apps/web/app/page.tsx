@@ -4,10 +4,10 @@ import { ExperienceList } from "@/components/ExperienceList";
 import { ProjectCard } from "@/components/ProjectCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { experience, profile, resumes } from "@/lib/profile";
-import { staticProjects } from "@/lib/projects";
+import { getProjects } from "@/lib/projects";
 
 export default function HomePage() {
-  const featured = staticProjects.filter((p) => p.featured).slice(0, 3);
+  const featured = getProjects().filter((p) => p.featured).slice(0, 3);
 
   return (
     <>

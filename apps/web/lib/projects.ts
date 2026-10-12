@@ -53,3 +53,12 @@ export const staticProjects: ProjectSummary[] = [
     featured: false,
   },
 ];
+
+export function getProjects() {
+  // Same order as the API: featured first, then the seed order.
+  return [...staticProjects].sort((a, b) => Number(b.featured) - Number(a.featured));
+}
+
+export function getProject(slug: string) {
+  return staticProjects.find((p) => p.slug === slug) ?? null;
+}

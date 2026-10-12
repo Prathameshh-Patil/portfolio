@@ -45,3 +45,34 @@ export const experience: Experience[] = [
     ],
   },
 ];
+
+export const education = {
+  degree: "B.E. in Artificial Intelligence & Machine Learning",
+  school: "Dayananda Sagar Academy of Technology and Management, Bengaluru",
+  period: "2022 – Oct 2026",
+  grade: "CGPA 7.6",
+};
+
+// Grouped skills. Deliberately no percentages or ratings.
+export const skills: { group: string; items: string[] }[] = [
+  { group: "Languages", items: ["Python", "SQL", "JavaScript", "TypeScript"] },
+  {
+    group: "Backend",
+    items: ["Node.js", "Express", "FastAPI", "REST APIs", "JWT authentication", "Pydantic", "Zod", "Celery", "Redis", "Database transactions and locking"],
+  },
+  { group: "Frontend", items: ["React", "Next.js", "Tailwind CSS"] },
+  { group: "Data & Infrastructure", items: ["PostgreSQL", "Drizzle ORM", "Docker", "GitHub Actions CI/CD", "Grafana"] },
+  {
+    group: "ML / AI",
+    items: [
+      "PyTorch",
+      "Hugging Face Transformers",
+      "scikit-learn",
+      "Model evaluation (accuracy, macro-F1)",
+      "Multi-agent workflows (Lyzr Agent Studio, LangGraph)",
+      "LLM APIs",
+      "RAG",
+    ],
+  },
+  { group: "Core CS", items: ["Data Structures", "Algorithms", "OOP", "DBMS", "Operating Systems"] },
+];

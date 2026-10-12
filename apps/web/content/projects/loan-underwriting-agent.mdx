@@ -1,0 +1,50 @@
+import { Diagram } from "@/components/Diagram";
+import { Todo } from "@/components/CaseStudyParts";
+
+## Problem
+
+A loan application arrives as a pile of mixed documents. Someone has to work out what each one is, pull out the details, check that they agree with each other, and flag anything suspicious before an underwriter can decide.
+
+## What I built
+
+A **12-agent pipeline** that takes a ZIP of mixed loan-application documents, extracts and cross-checks them, and returns **one underwriting summary with confidence scores and risk flags**.
+
+- **Stack:** Python, Lyzr Agent Studio and Tesseract OCR.
+- **Deterministic core:** joining the results, merging them, and the completeness gate are ordinary code, not agents.
+- **Identifier validators** for PAN, Aadhaar, GSTIN and IFSC, so malformed identifiers surface as fraud signals.
+
+## Architecture
+
+<Diagram
+  title="Loan underwriting: agents read and cross-check documents; deterministic code joins the results, checks completeness and validates identifiers."
+  nodes={[
+    { id: "zip", label: "ZIP upload", sub: "mixed loan documents", col: 0, row: 0 },
+    { id: "ocr", label: "Tesseract OCR", sub: "text from documents", col: 1, row: 0 },
+    { id: "agents", label: "12 Lyzr agents", sub: "extract · cross-check", col: 2, row: 0 },
+    { id: "gate", label: "Deterministic code", sub: "join · merge · completeness", col: 3, row: 0, accent: true },
+    { id: "ids", label: "ID validators", sub: "PAN · Aadhaar · GSTIN · IFSC", col: 4, row: 1 },
+    { id: "summary", label: "Underwriting summary", sub: "confidence · risk flags", col: 4, row: 0 },
+  ]}
+  edges={[
+    { from: "zip", to: "ocr" },
+    { from: "ocr", to: "agents" },
+    { from: "agents", to: "gate" },
+    { from: "gate", to: "ids" },
+    { from: "gate", to: "summary" },
+    { from: "ids", to: "summary", label: "fraud signals" },
+  ]}
+/>
+
+## Key decisions and trade-offs
+
+- **Agents for reading, code for deciding.** Agents handle the messy part: understanding documents and pulling out details. Joining, merging and the completeness gate are deterministic code, so the same inputs always give the same result and the logic can be tested directly.
+- **Validate identifiers with rules, not a model.** PAN, Aadhaar, GSTIN and IFSC have known formats. Checking them in code is exact and cheap, and a malformed identifier becomes a fraud signal instead of being quietly accepted.
+- **Confidence scores and risk flags, not a yes/no.** The output supports an underwriter's decision rather than replacing it.
+
+## Results
+
+<Todo />
+
+## What I'd do next
+
+<Todo>add what you would improve or build next.</Todo>

@@ -1,0 +1,65 @@
+import { Diagram } from "@/components/Diagram";
+import { MetricsTable, Todo } from "@/components/CaseStudyParts";
+
+## Problem
+
+Support teams want AI to speed up replies, but a wrong or invented answer sent to a customer is worse than a slow one. The system needs AI to do the routine work while a person stays in control of what actually goes out.
+
+## What I built
+
+An AI support inbox with human approval.
+
+- **Four single-purpose agents** handle each customer message: one sorts it by category and urgency, one extracts its details, one drafts a reply, and one checks the draft.
+- **A human support agent** then approves, edits or rejects the draft. Nothing is sent without a human decision.
+- **Stack:** Next.js, FastAPI, PostgreSQL and Lyzr Agent Studio, running in Docker.
+
+## Architecture
+
+<Diagram
+  title="ReplyDesk: four agents in a fixed order, schema validation after each step, and a human decision before anything is sent."
+  nodes={[
+    { id: "msg", label: "Customer message", col: 0, row: 0 },
+    { id: "classify", label: "Classify agent", sub: "category · urgency", col: 1, row: 0 },
+    { id: "extract", label: "Extract agent", sub: "message details", col: 2, row: 0 },
+    { id: "draft", label: "Draft agent", sub: "reply draft", col: 3, row: 0 },
+    { id: "check", label: "Check agent", sub: "reviews the draft", col: 4, row: 0 },
+    { id: "manual", label: "Manual queue", sub: "invalid output after retry", col: 2, row: 1 },
+    { id: "human", label: "Human review", sub: "approve · edit · reject", col: 4, row: 1, accent: true },
+    { id: "send", label: "Reply sent", sub: "only after approval", col: 3, row: 1 },
+  ]}
+  edges={[
+    { from: "msg", to: "classify" },
+    { from: "classify", to: "extract" },
+    { from: "extract", to: "draft" },
+    { from: "draft", to: "check" },
+    { from: "extract", to: "manual", label: "fails schema", dashed: true },
+    { from: "check", to: "human" },
+    { from: "human", to: "send", label: "approve" },
+  ]}
+/>
+
+The dashed arrow applies to every agent step, not only extraction: any output that still fails validation after one retry goes to the manual queue.
+
+## Key decisions and trade-offs
+
+- **Orchestration in plain Python, not inside the agent tool.** Step order, storage and business rules are ordinary Python code. When something fails, it points to one step, and the pipeline can be re-run from that step instead of from the start.
+- **Small agents with one job each.** Four focused agents are easier to test and debug than one agent that does everything, at the cost of more calls per message.
+- **Validate every agent output.** Each output is checked against a Pydantic schema. If it fails, the step is retried once; if it fails again, the message goes to a manual-handling queue instead of moving on with bad data.
+- **A human approves every reply.** This is slower than sending automatically, but it means an AI mistake never reaches a customer without a person seeing it.
+
+## Results
+
+The pipeline was scored on **60 labelled messages**:
+
+<MetricsTable
+  columns={["Metric", "Result"]}
+  rows={[
+    ["Category accuracy", "TODO: add from repo results"],
+    ["Extraction accuracy", "TODO: add from repo results"],
+    ["Invented details", "TODO: add from repo results"],
+  ]}
+/>
+
+## What I'd do next
+
+<Todo>add what you would improve or build next.</Todo>

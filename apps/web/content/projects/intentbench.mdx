@@ -1,0 +1,64 @@
+import { Diagram } from "@/components/Diagram";
+import { MetricsTable, Todo } from "@/components/CaseStudyParts";
+
+## Problem
+
+For a text classification task there are three very different options: a classical model, a fine-tuned transformer, or an LLM prompted with no or few examples. They differ a lot in accuracy, speed and cost, and the right choice depends on all three, not just accuracy.
+
+## What I built
+
+A side-by-side comparison on **150 intents (CLINC150)**:
+
+- **TF-IDF + logistic regression** (scikit-learn)
+- **Fine-tuned DistilBERT** (PyTorch, Hugging Face Transformers)
+- **Zero-shot and few-shot LLM classification**
+
+All approaches were measured on **one held-out test set** for accuracy, macro-F1, p95 latency and cost per 1,000 requests. I then analysed the most confused intent pairs to decide what to ship, and served the chosen model behind a FastAPI endpoint.
+
+## Architecture
+
+<Diagram
+  title="IntentBench: three approaches evaluated on the same test set; the chosen model is served behind FastAPI with a confidence threshold."
+  nodes={[
+    { id: "data", label: "CLINC150", sub: "150 intents · held-out test", col: 0, row: 1 },
+    { id: "tfidf", label: "TF-IDF + LogReg", sub: "scikit-learn", col: 1, row: 0 },
+    { id: "bert", label: "DistilBERT", sub: "fine-tuned", col: 1, row: 1 },
+    { id: "llm", label: "LLM", sub: "zero-shot / few-shot", col: 1, row: 2 },
+    { id: "eval", label: "Evaluation", sub: "accuracy · F1 · p95 · cost", col: 2, row: 1 },
+    { id: "api", label: "FastAPI endpoint", sub: "confidence threshold", col: 3, row: 1, accent: true },
+  ]}
+  edges={[
+    { from: "data", to: "tfidf" },
+    { from: "data", to: "bert" },
+    { from: "data", to: "llm" },
+    { from: "tfidf", to: "eval" },
+    { from: "bert", to: "eval" },
+    { from: "llm", to: "eval" },
+    { from: "eval", to: "api", label: "chosen" },
+  ]}
+/>
+
+## Key decisions and trade-offs
+
+- **One test set for every approach.** Comparing all models on the same held-out data is what makes the numbers comparable.
+- **Measure cost and latency, not only accuracy.** A model that is slightly more accurate but much slower or more expensive per request may be the wrong thing to ship.
+- **Look at the confusions, not just the score.** Analysing the most confused intent pairs shows *where* a model fails, which matters when choosing between models with similar scores.
+- **Say "I don't know" when unsure.** The endpoint validates input with Pydantic and uses a confidence threshold: queries the model is unsure about get an out-of-scope response instead of a confident wrong intent.
+
+## Results
+
+<MetricsTable
+  columns={["Approach", "Accuracy", "Macro-F1", "p95 latency", "Cost / 1,000 requests"]}
+  rows={[
+    ["TF-IDF + logistic regression", "TODO", "TODO", "TODO", "TODO"],
+    ["Fine-tuned DistilBERT", "TODO", "TODO", "TODO", "TODO"],
+    ["LLM zero-shot", "TODO", "TODO", "TODO", "TODO"],
+    ["LLM few-shot", "TODO", "TODO", "TODO", "TODO"],
+  ]}
+/>
+
+<Todo>add the numbers from the repo results, which model was shipped, and the most confused intent pairs.</Todo>
+
+## What I'd do next
+
+<Todo>add what you would improve or build next.</Todo>

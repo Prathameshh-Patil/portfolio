@@ -1,0 +1,50 @@
+import { Diagram } from "@/components/Diagram";
+import { Todo } from "@/components/CaseStudyParts";
+
+## Problem
+
+A booking site has one rule it can never break: a seat is sold once. That gets hard when many people try to book the same seat at the same moment. Booking requests also have to stay fast, so slow work like sending emails can't happen while the user waits.
+
+## What I built
+
+A full-stack event booking platform. Users browse events, hold a seat, and confirm a booking. Authentication uses JWTs with two roles, user and admin.
+
+- **Frontend:** Next.js and TypeScript.
+- **API:** FastAPI, with PostgreSQL as the source of truth.
+- **Background work:** Celery workers with Redis send confirmation emails and release seat holds that have expired.
+- **Running it:** the whole stack starts with one Docker Compose command, and the tests run in GitHub Actions on every push.
+
+## Architecture
+
+<Diagram
+  title="Slotwise: the API does the booking inside a database transaction; slow work goes to Celery through Redis."
+  nodes={[
+    { id: "web", label: "Next.js", sub: "browse · hold · confirm", col: 0, row: 0 },
+    { id: "api", label: "FastAPI", sub: "JWT · user / admin", col: 1, row: 0 },
+    { id: "db", label: "PostgreSQL", sub: "row lock + unique constraint", col: 2, row: 0, accent: true },
+    { id: "redis", label: "Redis", sub: "task queue", col: 1, row: 1 },
+    { id: "worker", label: "Celery workers", sub: "emails · expire holds", col: 2, row: 1 },
+  ]}
+  edges={[
+    { from: "web", to: "api", label: "JSON" },
+    { from: "api", to: "db" },
+    { from: "api", to: "redis", label: "enqueue" },
+    { from: "redis", to: "worker" },
+    { from: "worker", to: "db", label: "release holds" },
+  ]}
+/>
+
+## Key decisions and trade-offs
+
+- **Two layers of protection against double booking.** A seat is held with row-level locking inside a database transaction, so two requests for the same seat are handled one after the other instead of both succeeding. A unique constraint backs this up: even if the application logic had a bug, the database itself refuses a second booking for the same seat.
+- **Timed holds before confirmation.** Holding a seat gives the user time to confirm without someone else taking it. Because holds expire and a worker releases them, an abandoned hold doesn't block the seat forever.
+- **Slow work in background jobs.** Confirmation emails and hold expiry run on Celery workers with Redis, so the booking request returns immediately. The cost is two more moving parts (Redis and a worker process) to run and monitor.
+
+## Results
+
+- A test fires **50 simultaneous bookings at one seat** and asserts that **exactly one succeeds**.
+- Tests run in **GitHub Actions on every push**.
+
+## What I'd do next
+
+<Todo>add what you would improve or build next.</Todo>
