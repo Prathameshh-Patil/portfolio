@@ -1,0 +1,14 @@
+# Files never uploaded by `vercel deploy` (same idea as .dockerignore).
+**/.env*
+**/.vercel
+**/node_modules
+**/.next
+**/dist
+**/coverage
+**/test-results
+**/playwright-report
+apps/api/tests
+apps/web/e2e
+# Only the public resume is part of the site.
+apps/web/public/resume/*
+!apps/web/public/resume/Prathamesh_Patil_Resume.pdf

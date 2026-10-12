@@ -58,6 +58,25 @@ If port 3000 is taken, set `WEB_PORT=3002` in `.env` and add `http://localhost:3
 
 **Develop with hot reload:** `npm run dev` starts Postgres in Docker, then runs the API and the website on your machine.
 
+## Deployment
+
+Live at **https://prathameshpatil.vercel.app** (API: https://prathameshpatil-api.vercel.app/health).
+
+| Piece | Where | How |
+|---|---|---|
+| Website | Vercel project `prathameshpatil`, root `apps/web` | Next.js, detected by Vercel |
+| API | Vercel project `prathameshpatil-api`, root `apps/api` | `api/index.ts` exports the same Express app that Docker runs; `vercel.json` routes every path to it |
+| Database | Neon Postgres (free), connected to the API project | Adds `DATABASE_URL`; each API deploy runs the migrations and the seed (`vercel-build`) |
+
+Deploy from the repo root, so Vercel sees the npm workspace and its lockfile (IDs are in each app's `.vercel/project.json`):
+
+```bash
+VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<api project> npx vercel deploy --prod   # API first
+VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<web project> npx vercel deploy --prod   # then the website
+```
+
+`.vercelignore` keeps `.env` files, build output and private PDFs out of the upload. Environment variables live in each Vercel project. On Vercel, each running copy of the API keeps its own rate-limit counts, so the limits there are approximate.
+
 ## Checks
 
 ```bash

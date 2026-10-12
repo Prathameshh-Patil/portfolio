@@ -2,7 +2,8 @@
 **/dist
 **/.next
 **/coverage
-.env
+**/.env*
+**/.vercel
 .git
 apps/api/tests
 # Only the public resume goes into the image (same rule as .gitignore).
