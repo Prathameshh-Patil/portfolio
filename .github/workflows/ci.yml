@@ -9,6 +9,16 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # The API tests create a throwaway database per test file on this server.
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: portfolio
+        ports: ["3307:3306"]
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pportfolio --silent"
+          --health-interval 3s --health-retries 30
     steps:
       - uses: actions/checkout@v4
 
@@ -26,9 +36,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # Runs against an in-memory Postgres (PGlite), so no database service is needed.
+      # Runs against the MySQL service above (same address as the compose db on a laptop).
       - name: API tests
         run: npm test
+
+      - name: Lambda bundle builds
+        run: npm run build:lambda -w apps/api
 
       - name: Web build
         run: npm run build -w apps/web

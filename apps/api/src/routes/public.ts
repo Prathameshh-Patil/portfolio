@@ -1,22 +1,11 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
-import { z } from "zod";
 import type { Db } from "../db/client.js";
 import { messages, projects } from "../db/schema.js";
 import { asyncHandler, HttpError } from "../lib/errors.js";
+import { contactSchema, slugParam } from "../schemas.js";
 import type { Mailer } from "../services/email.js";
-
-const contactSchema = z.object({
-  name: z.string().trim().min(1).max(100),
-  email: z.email().max(200),
-  subject: z.string().trim().max(150).optional(),
-  body: z.string().trim().min(10).max(5000),
-  // Honeypot: a hidden field on the form. Real people leave it empty; bots fill it in.
-  website: z.string().optional(),
-});
-
-const slugParam = z.object({ slug: z.string().regex(/^[a-z0-9-]{1,80}$/) });
 
 export function publicRouter(db: Db, mailer: Mailer, opts: { contactLimit: number }) {
   const router = Router();
@@ -49,16 +38,18 @@ export function publicRouter(db: Db, mailer: Mailer, opts: { contactLimit: numbe
   );
 
   // POST /api/projects/:slug/view : increments the view counter.
-  // A single UPDATE ... SET views = views + 1 is atomic, so concurrent visits are never lost.
+  // UPDATE ... SET views = views + 1 is atomic, so concurrent visits are never lost. The UPDATE locks the
+  // row until the transaction commits, so the SELECT after it reads exactly this visit's count.
   router.post(
     "/projects/:slug/view",
     asyncHandler(async (req, res) => {
       const { slug } = slugParam.parse(req.params);
-      const [row] = await db
-        .update(projects)
-        .set({ views: sql`${projects.views} + 1` })
-        .where(and(eq(projects.slug, slug), eq(projects.published, true)))
-        .returning({ views: projects.views });
+      const where = and(eq(projects.slug, slug), eq(projects.published, true));
+      const row = await db.transaction(async (tx) => {
+        await tx.update(projects).set({ views: sql`${projects.views} + 1` }).where(where);
+        const [found] = await tx.select({ views: projects.views }).from(projects).where(where);
+        return found;
+      });
       if (!row) throw new HttpError(404, "Project not found");
       res.json(row);
     }),
@@ -83,7 +74,7 @@ export function publicRouter(db: Db, mailer: Mailer, opts: { contactLimit: numbe
         res.status(201).json({ ok: true });
         return;
       }
-      const [saved] = await db.insert(messages).values(data).returning({ id: messages.id });
+      const [saved] = await db.insert(messages).values(data).$returningId();
       // The message is already saved, so an email failure shouldn't fail the request.
       mailer.notifyNewMessage(data).catch((err) => req.log?.warn({ err }, "Email notification failed"));
       res.status(201).json({ ok: true, id: saved.id });

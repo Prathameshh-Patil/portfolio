@@ -1,6 +1,6 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
-import { ADMIN_EMAIL, setup } from "./helpers.js";
+import { ADMIN_EMAIL, setup, teardown } from "./helpers.js";
 
 let ctx: Awaited<ReturnType<typeof setup>>;
 let token: string;
@@ -9,6 +9,8 @@ beforeAll(async () => {
   ctx = await setup();
   token = await ctx.adminToken();
 });
+
+afterAll(teardown);
 
 const auth = () => ({ Authorization: `Bearer ${token}` });
 

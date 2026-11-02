@@ -1,11 +1,9 @@
 import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import bcrypt from "bcryptjs";
-import { z } from "zod";
 import { asyncHandler, HttpError } from "../lib/errors.js";
 import { signAdminToken } from "../middleware/auth.js";
-
-const loginSchema = z.object({ email: z.email(), password: z.string().min(1).max(200) });
+import { loginSchema } from "../schemas.js";
 
 export function authRouter(opts: { adminEmail: string; adminPasswordHash: string; jwtSecret: string; loginLimit: number }) {
   const router = Router();

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { loadConfig } from "../src/config.js";
 
 const required = {
-  DATABASE_URL: "postgres://localhost/test",
+  DATABASE_URL: "mysql://localhost/test",
   JWT_SECRET: "a-secret-that-is-at-least-32-characters-long",
   ADMIN_EMAIL: "admin@example.com",
   ADMIN_PASSWORD_HASH: "$2b$12$hash",

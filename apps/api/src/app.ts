@@ -4,6 +4,7 @@ import helmet from "helmet";
 import { pinoHttp } from "pino-http";
 import { sql } from "drizzle-orm";
 import type { Db } from "./db/client.js";
+import { docsRouter } from "./docs.js";
 import { errorHandler, notFound, asyncHandler } from "./lib/errors.js";
 import { requireAdmin } from "./middleware/auth.js";
 import { adminRouter } from "./routes/admin.js";
@@ -47,6 +48,7 @@ export function createApp(deps: AppDeps) {
     }),
   );
 
+  app.use(docsRouter());
   app.use("/api", publicRouter(deps.db, deps.mailer, { contactLimit: deps.contactLimit ?? 5 }));
   app.use(
     "/api/auth",
