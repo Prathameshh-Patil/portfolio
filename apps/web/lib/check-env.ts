@@ -1,4 +1,4 @@
-import { internalApiUrl, publicApiUrl } from "./env";
+import { internalApiUrl, publicApiUrl } from "@/lib/env";
 
 // A bad env value stops the server immediately with a clear message, instead of every page
 // failing later (same idea as apps/api/src/config.ts).

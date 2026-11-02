@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { ProjectEditor } from "@/components/admin/ProjectForm";
+import { ProjectEditor } from "@/features/admin/ProjectForm";
 
 export const metadata = { title: "Edit project" };
 

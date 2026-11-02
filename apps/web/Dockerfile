@@ -6,7 +6,10 @@ WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/
-RUN npm ci -w apps/web
+COPY packages/contracts packages/contracts
+# --ignore-scripts: the root postinstall would build the contracts before TypeScript is ready; it's done next.
+RUN npm ci -w apps/web -w @portfolio/contracts --ignore-scripts
+RUN npm run build -w @portfolio/contracts
 COPY apps/web apps/web
 # NEXT_PUBLIC_* values are inlined into the browser bundle during `next build`, so this is a build arg,
 # not a runtime env var. It is the API address as seen from the visitor's browser.

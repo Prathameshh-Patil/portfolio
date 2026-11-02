@@ -1,4 +1,4 @@
-import { ProjectList } from "@/components/admin/ProjectList";
+import { ProjectList } from "@/features/admin/ProjectList";
 
 export const metadata = { title: "Projects" };
 

@@ -16,7 +16,7 @@ if [ "${1:-}" != "--yes" ]; then
   [ "$answer" = "y" ] || [ "$answer" = "Y" ] || { echo "Cancelled."; exit 0; }
 fi
 
-# --volumes removes the Postgres data volume. On start, the api container runs the migrations
+# --volumes removes the MySQL data volume. On start, the api container runs the migrations
 # and the seed again, so the site comes back with the four resume projects and nothing else.
 docker compose down --volumes
 # --wait returns once db and api pass their healthchecks and web is running.

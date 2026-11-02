@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { sql } from "drizzle-orm";
 import { createDb } from "./client.js";
 import { projects } from "./schema.js";
 
@@ -52,6 +53,7 @@ const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set");
 
 const { db, pool } = createDb(url);
-await db.insert(projects).values(seed).onConflictDoNothing({ target: projects.slug });
+// A no-op update on a duplicate slug: existing projects (maybe edited in the admin panel) stay as they are.
+await db.insert(projects).values(seed).onDuplicateKeyUpdate({ set: { slug: sql`${projects.slug}` } });
 console.log(`Seeded ${seed.length} projects (existing slugs were skipped)`);
 await pool.end();

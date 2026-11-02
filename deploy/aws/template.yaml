@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Portfolio API on AWS. The Express app runs as one Lambda function behind an API Gateway HTTP API
+  and stores its data in Amazon RDS for MySQL. Deploy with deploy/aws/deploy.sh.
+
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC for the database (deploy.sh passes the default VPC)
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: At least two subnets in different availability zones of that VPC
+  AdminEmail:
+    Type: String
+  AdminPasswordHash:
+    Type: String
+    NoEcho: true
+    Description: bcrypt hash from `npm run hash-password -w apps/api`
+  JwtSecret:
+    Type: String
+    NoEcho: true
+    MinLength: 32
+  CorsOrigins:
+    Type: String
+    Default: https://prathameshpatil.vercel.app
+    Description: Comma-separated website origins allowed to call the API
+  ResendApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+  ContactToEmail:
+    Type: String
+    Default: ""
+  ContactFromEmail:
+    Type: String
+    Default: ""
+  DbInstanceClass:
+    Type: String
+    Default: db.t4g.micro
+    Description: db.t4g.micro is in the RDS free tier
+
+Resources:
+  # Random password, stored in Secrets Manager and never written in this template or the repo.
+  DbSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Master password of the portfolio MySQL database
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "portfolio"}'
+        GenerateStringKey: password
+        PasswordLength: 32
+        # Letters and digits only, so the password can sit in a mysql:// URL without escaping.
+        ExcludePunctuation: true
+
+  # The function runs outside the VPC (no NAT gateway to pay for, and it can still reach Resend),
+  # so the database accepts connections from the internet. What protects it: TLS is required
+  # (see DbParameters), the password is 32 random characters, and the root account is never used by the app.
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: MySQL for the portfolio API
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          CidrIp: 0.0.0.0/0
+
+  DbSubnets:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for the portfolio database
+      SubnetIds: !Ref SubnetIds
+
+  DbParameters:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Portfolio MySQL settings
+      Family: mysql8.4
+      Parameters:
+        require_secure_transport: "ON" # refuse unencrypted connections
+        time_zone: UTC
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    # Deleting the stack keeps a final snapshot of the data.
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: mysql
+      EngineVersion: "8.4"
+      DBInstanceClass: !Ref DbInstanceClass
+      AllocatedStorage: "20"
+      StorageType: gp3
+      StorageEncrypted: true
+      DBName: portfolio
+      MasterUsername: portfolio
+      MasterUserPassword: !Sub "{{resolve:secretsmanager:${DbSecret}:SecretString:password}}"
+      DBSubnetGroupName: !Ref DbSubnets
+      DBParameterGroupName: !Ref DbParameters
+      VPCSecurityGroups: [!GetAtt DbSecurityGroup.GroupId]
+      PubliclyAccessible: true
+      MultiAZ: false
+      BackupRetentionPeriod: 7
+      AutoMinorVersionUpgrade: true
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      # A ceiling on traffic, so a flood of requests can't run up the bill or exhaust database connections.
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 50
+        ThrottlingRateLimit: 20
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      # Built by `npm run build:lambda -w apps/api`: one bundled file with every dependency.
+      CodeUri: ../../apps/api/dist-lambda
+      Handler: index.handler
+      Runtime: nodejs22.x
+      Architectures: [arm64]
+      MemorySize: 512
+      Timeout: 15
+      Environment:
+        Variables:
+          NODE_ENV: production
+          # ?ssl=Amazon RDS: TLS, verified against the RDS certificates that ship with the mysql2 driver.
+          DATABASE_URL: !Sub "mysql://portfolio:{{resolve:secretsmanager:${DbSecret}:SecretString:password}}@${Database.Endpoint.Address}:${Database.Endpoint.Port}/portfolio?ssl=Amazon%20RDS"
+          CORS_ORIGINS: !Ref CorsOrigins
+          JWT_SECRET: !Ref JwtSecret
+          ADMIN_EMAIL: !Ref AdminEmail
+          ADMIN_PASSWORD_HASH: !Ref AdminPasswordHash
+          RESEND_API_KEY: !Ref ResendApiKey
+          CONTACT_TO_EMAIL: !Ref ContactToEmail
+          CONTACT_FROM_EMAIL: !Ref ContactFromEmail
+      Events:
+        All:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+        Root:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /
+            Method: ANY
+
+  # Created up front so the logs don't pile up forever (Lambda's own log group never expires).
+  ApiLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ApiFunction}
+      RetentionInDays: 14
+
+Outputs:
+  ApiUrl:
+    Description: Base URL of the API (set it as NEXT_PUBLIC_API_URL and API_URL_INTERNAL on the website)
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com
+  DocsUrl:
+    Description: Interactive API documentation
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/docs
+  DatabaseHost:
+    Value: !GetAtt Database.Endpoint.Address
+  DbSecretArn:
+    Description: Secret holding the database password
+    Value: !Ref DbSecret

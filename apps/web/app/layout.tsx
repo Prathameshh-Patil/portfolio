@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
-import { SiteFooter } from "@/components/SiteFooter";
-import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import "./globals.css";
 
 // next/font downloads the fonts at build time and serves them from this app (no runtime Google request).

@@ -2,12 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { ApiErrorNotice } from "@/components/ApiErrorNotice";
-import { ButtonLink } from "@/components/ButtonLink";
-import { Container } from "@/components/Container";
-import { ViewCounter } from "@/components/ViewCounter";
-import { ArrowUpRight, GitHub } from "@/components/icons";
-import { ApiError, getProject, type Project } from "@/lib/api";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
+import { TechList } from "@/components/ui/Badge";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { CallToAction } from "@/components/ui/CallToAction";
+import { Container } from "@/components/ui/Container";
+import { ArrowLeft, ArrowUpRight, GitHub } from "@/components/ui/icons";
+import type { Project } from "@portfolio/contracts";
+import { ApiError } from "@/lib/api-client";
+import { getProject } from "@/features/projects/api";
+import { projectHighlights } from "@/features/projects/highlights";
+import { TableOfContents } from "@/features/projects/TableOfContents";
+import { ViewCounter } from "@/features/projects/ViewCounter";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -54,45 +60,85 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound();
 
   const CaseStudy = await loadCaseStudy(slug);
+  const highlight = projectHighlights[slug];
 
   return (
-    <Container className="max-w-3xl">
-      <header className="pb-10 pt-14 sm:pt-20">
-        <div className="flex items-center justify-between gap-4">
-          <Link href="/projects" className="text-sm text-muted transition-colors hover:text-accent">
-            <span aria-hidden="true">←</span> All projects
-          </Link>
-          <ViewCounter slug={project.slug} initialViews={project.views} />
-        </div>
-        <h1 className="mt-6 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{project.title}</h1>
-        <p className="mt-4 leading-relaxed text-muted sm:text-lg">{project.summary}</p>
+    <>
+      <section className="relative isolate border-b border-border">
+        <div aria-hidden="true" className="bg-grid absolute inset-0 -z-10" />
+        <Container className="pb-12 pt-10 sm:pb-16 sm:pt-14">
+          <div className="flex items-center justify-between gap-4">
+            <Link href="/projects" className="group inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-text">
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> All projects
+            </Link>
+            <ViewCounter slug={project.slug} initialViews={project.views} />
+          </div>
 
-        <ul className="mt-6 flex flex-wrap gap-1.5" aria-label="Tech stack">
-          {project.techStack.map((tech) => (
-            <li key={tech} className="rounded bg-accent-soft px-2 py-0.5 font-mono text-xs">
-              {tech}
-            </li>
-          ))}
-        </ul>
+          <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div className="max-w-3xl">
+              <p className="eyebrow">Case study</p>
+              <h1 className="mt-4 text-4xl font-semibold leading-[1.08] tracking-[-0.03em] sm:text-5xl">{project.title}</h1>
+              <p className="mt-5 text-lg leading-relaxed text-muted">{project.summary}</p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {project.repoUrl && (
+                  <ButtonLink href={project.repoUrl} variant="primary" size="lg" external>
+                    <GitHub /> View code on GitHub
+                  </ButtonLink>
+                )}
+                {/* Only shown when a real demo URL exists. */}
+                {project.demoUrl && (
+                  <ButtonLink href={project.demoUrl} size="lg" external>
+                    Open demo <ArrowUpRight />
+                  </ButtonLink>
+                )}
+              </div>
+            </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          {project.repoUrl && (
-            <ButtonLink href={project.repoUrl} variant="primary" external>
-              <GitHub /> View code on GitHub
-            </ButtonLink>
-          )}
-          {/* Only shown when a real demo URL exists. */}
-          {project.demoUrl && (
-            <ButtonLink href={project.demoUrl} external>
-              Open demo <ArrowUpRight />
-            </ButtonLink>
-          )}
-        </div>
-      </header>
+            {highlight && (
+              <div className="card min-w-0 p-6 lg:w-72">
+                <p className="eyebrow !text-subtle">Key result</p>
+                <p className="text-gradient mt-3 w-fit text-5xl font-semibold tracking-tight">{highlight.metric.value}</p>
+                <p className="mt-2 text-sm leading-snug text-muted">{highlight.metric.label}</p>
+              </div>
+            )}
+          </div>
+        </Container>
+      </section>
 
-      <article className="border-t border-border pt-12">
-        {CaseStudy ? <CaseStudy /> : <p className="text-muted">A detailed write-up for this project is coming soon.</p>}
-      </article>
-    </Container>
+      <Container className="grid gap-12 py-14 lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-16">
+        <article id="case-study" className="min-w-0 max-w-3xl">
+          {CaseStudy ? <CaseStudy /> : <p className="text-muted">A detailed write-up for this project is coming soon.</p>}
+        </article>
+
+        <aside className="order-first space-y-8 lg:order-none">
+          <div className="space-y-8 lg:sticky lg:top-24">
+            <div>
+              <h2 className="eyebrow !text-subtle">Tech stack</h2>
+              <TechList items={project.techStack} className="mt-3" />
+            </div>
+            {highlight && (
+              <div>
+                <h2 className="eyebrow !text-subtle">Pipeline</h2>
+                <ol className="mt-3 space-y-1.5 text-sm">
+                  {highlight.flow.map((step, i) => (
+                    <li key={step} className="flex items-center gap-2.5">
+                      <span className="grid h-5 w-5 place-items-center rounded-full bg-surface-2 font-mono text-[10px] text-muted">{i + 1}</span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            <div className="hidden lg:block">
+              <TableOfContents articleId="case-study" />
+            </div>
+          </div>
+        </aside>
+      </Container>
+
+      <Container className="pt-6">
+        <CallToAction title="Like how this was built? Let's talk." />
+      </Container>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import { createApp } from "./app.js";
 import { loadConfig } from "./config.js";
 import { createDb } from "./db/client.js";
-import { createMailer } from "./services/email.js";
+import { createMailer } from "./integrations/email.js";
 
 // The app wired to the real environment and database. Two entry points use it:
 // server.ts (Docker, local) calls listen(); api/index.ts (Vercel) exports it as a function.
