@@ -39,9 +39,13 @@ export function LoginForm() {
   }
 
   return (
-    <div className="mx-auto max-w-sm py-12">
-      <h1 className="text-2xl font-semibold tracking-tight">Admin login</h1>
-      {expired && <p className="mt-3 text-sm text-muted">Your session expired. Please log in again.</p>}
+    <div className="card mx-auto my-12 max-w-sm p-8">
+      <span aria-hidden="true" className="grid h-10 w-10 place-items-center rounded-xl bg-text font-mono text-xs font-semibold text-bg">
+        PP
+      </span>
+      <h1 className="mt-5 text-2xl font-semibold tracking-tight">Admin login</h1>
+      <p className="mt-1 text-sm text-muted">Manage projects and read contact messages.</p>
+      {expired && <p className="mt-4 rounded-xl bg-surface-2 px-3 py-2 text-sm text-muted">Your session expired. Please log in again.</p>}
       <form onSubmit={handleSubmit} method="post" className="mt-8 space-y-5">
         <Field name="email" label="Email">
           <input type="email" autoComplete="username" required {...fieldProps("email")} />

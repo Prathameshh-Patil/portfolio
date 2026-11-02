@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Eye } from "@/components/ui/icons";
 import { recordView } from "./api";
 
 // Counts one view per browser session. `initialViews` comes from the server render, so returning
@@ -24,7 +25,8 @@ export function ViewCounter({ slug, initialViews }: { slug: string; initialViews
   }, [slug]);
 
   return (
-    <p className="font-mono text-xs text-muted">
+    <p className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 font-mono text-xs text-muted shadow-[var(--shadow-sm)]">
+      <Eye className="h-3.5 w-3.5" />
       {views.toLocaleString("en-IN")} {views === 1 ? "view" : "views"}
     </p>
   );

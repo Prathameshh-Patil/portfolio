@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { Project } from "@portfolio/contracts";
-import { projectHighlights, type ProjectHighlight } from "@/features/projects/highlights";
+import { TechList } from "@/components/ui/Badge";
 import { ArrowRight, ArrowUpRight, GitHub } from "@/components/ui/icons";
+import { projectHighlights, type ProjectHighlight } from "@/features/projects/highlights";
 
 type CardProject = Pick<Project, "slug" | "title" | "summary" | "techStack" | "repoUrl">;
 
@@ -15,47 +16,40 @@ export function ProjectCard({ project, wide = false, heading: Heading = "h3" }: 
   const titleEnd = project.title.slice(splitAt);
 
   return (
-    <article
-      className={`card group relative flex flex-col gap-6 p-5 transition-all duration-300 hover:border-accent/40 focus-within:border-accent/60 hover:shadow-[inset_0_1px_0_0_var(--highlight),0_20px_40px_-20px_var(--accent)] motion-safe:hover:-translate-y-1 sm:p-6 ${
-        wide ? "lg:flex-row lg:items-stretch lg:gap-8" : ""
-      }`}
-    >
+    <article className={`card card-interactive group relative flex h-full flex-col overflow-hidden ${wide ? "lg:flex-row" : ""}`}>
       {highlight && <Preview slug={project.slug} highlight={highlight} wide={wide} />}
 
-      <div className="flex flex-1 flex-col">
+      <div className={`flex flex-1 flex-col p-6 ${wide ? "lg:p-8" : ""}`}>
         {highlight?.status && (
           <p className="mb-3 w-fit rounded-full border border-border px-2.5 py-0.5 font-mono text-[11px] text-muted">{highlight.status}</p>
         )}
-        <Heading className={`font-semibold leading-snug tracking-tight ${wide ? "text-xl" : "text-lg"}`}>
-          <Link href={`/projects/${project.slug}`} className="transition-colors after:absolute after:inset-0 after:rounded-[0.875rem] group-hover:text-accent">
+        <Heading className={`font-semibold leading-snug tracking-tight ${wide ? "text-2xl" : "text-xl"}`}>
+          <Link
+            href={`/projects/${project.slug}`}
+            className="transition-colors after:absolute after:inset-0 after:rounded-[1rem] group-hover:text-accent"
+          >
             {titleStart}
             {/* Last word and arrow can't be split, so the arrow never wraps onto a line by itself. */}
             <span className="whitespace-nowrap">
               {titleEnd}
-              <ArrowUpRight className="ml-1.5 inline h-4 w-4 align-[-2px] text-muted transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
+              <ArrowUpRight className="ml-1.5 inline h-4 w-4 align-[-2px] text-subtle transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent" />
             </span>
           </Link>
         </Heading>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{highlight?.tagline ?? project.summary}</p>
+        <p className="mt-3 leading-relaxed text-muted">{highlight?.tagline ?? project.summary}</p>
 
-        <ul className="mt-5 flex flex-wrap gap-1.5" aria-label="Tech stack">
-          {project.techStack.map((tech) => (
-            <li key={tech} className="rounded-full border border-border bg-bg/60 px-2.5 py-0.5 font-mono text-[11px] text-muted">
-              {tech}
-            </li>
-          ))}
-        </ul>
+        <TechList items={project.techStack} className="mt-5" />
 
-        <div className="mt-auto flex items-center justify-between pt-6 text-sm">
-          <span className="inline-flex items-center gap-1.5 text-muted transition-colors group-hover:text-accent" aria-hidden="true">
-            Read case study <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+        <div className="mt-auto flex items-center justify-between pt-7 text-sm">
+          <span className="inline-flex items-center gap-1.5 font-medium text-text transition-colors group-hover:text-accent" aria-hidden="true">
+            Read case study <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
           </span>
           {project.repoUrl && (
             <a
               href={project.repoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="relative z-10 rounded-md p-1.5 text-muted transition-colors hover:bg-accent-soft hover:text-text"
+              className="relative z-10 rounded-full border border-border p-2 text-muted transition-colors hover:border-accent/50 hover:text-text"
             >
               <GitHub />
               <span className="sr-only">{project.title} on GitHub (opens in a new tab)</span>
@@ -67,30 +61,34 @@ export function ProjectCard({ project, wide = false, heading: Heading = "h3" }: 
   );
 }
 
-// A small "window" showing the project's pipeline and one real result, so each card has a visual anchor.
+// The card's visual: the project's pipeline and one real, sourced result, on a tinted grid.
 function Preview({ slug, highlight, wide }: { slug: string; highlight: ProjectHighlight; wide: boolean }) {
   return (
-    <div className={`flex flex-col rounded-lg border border-border bg-bg/70 font-mono text-[11px] ${wide ? "lg:order-last lg:w-[46%]" : ""}`}>
-      <div className="flex items-center gap-1.5 border-b border-border px-3 py-2" aria-hidden="true">
-        <span className="h-2 w-2 rounded-full bg-border" />
-        <span className="h-2 w-2 rounded-full bg-border" />
-        <span className="h-2 w-2 rounded-full bg-border" />
-        <span className="ml-2 truncate text-muted">{slug}</span>
-      </div>
-      <div className="flex flex-1 flex-col justify-between gap-4 p-3 sm:p-4">
-        <ol className="flex flex-wrap items-center gap-1.5" aria-label="Pipeline">
-          {highlight.flow.map((step, i) => (
-            <li key={step} className="flex items-center gap-1.5">
-              {i > 0 && <span className="text-muted/60" aria-hidden="true">→</span>}
-              <span className="rounded border border-border bg-surface px-1.5 py-0.5 text-text">{step}</span>
-            </li>
-          ))}
-        </ol>
-        <p className="flex items-baseline gap-2.5 border-t border-dashed border-border pt-3">
-          <span className="text-gradient-accent shrink-0 whitespace-nowrap font-sans text-2xl font-semibold tracking-tight">{highlight.metric.value}</span>
-          <span className="leading-snug text-muted">{highlight.metric.label}</span>
-        </p>
-      </div>
+    <div
+      className={`relative isolate flex flex-col justify-between gap-8 overflow-hidden border-b border-border bg-surface-2/60 p-6 ${
+        wide ? "lg:order-last lg:w-[48%] lg:border-b-0 lg:border-l lg:p-8" : ""
+      }`}
+    >
+      <div aria-hidden="true" className="bg-grid absolute inset-0 -z-10 opacity-70" />
+      <div
+        aria-hidden="true"
+        className="absolute -right-16 -top-16 -z-10 h-48 w-48 rounded-full bg-[radial-gradient(circle,var(--glow-1),transparent_70%)] transition-transform duration-700 group-hover:scale-125"
+      />
+      <p className="font-mono text-[11px] text-subtle" aria-hidden="true">
+        ~/{slug}
+      </p>
+      <ol className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]" aria-label="Pipeline">
+        {highlight.flow.map((step, i) => (
+          <li key={step} className="flex items-center gap-1.5">
+            {i > 0 && <span className="text-subtle" aria-hidden="true">→</span>}
+            <span className="rounded-md border border-border bg-surface px-2 py-1 text-text shadow-[var(--shadow-sm)]">{step}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="flex flex-col gap-1">
+        <span className="text-gradient w-fit text-4xl font-semibold tracking-tight">{highlight.metric.value}</span>
+        <span className="max-w-xs text-sm leading-snug text-muted">{highlight.metric.label}</span>
+      </p>
     </div>
   );
 }

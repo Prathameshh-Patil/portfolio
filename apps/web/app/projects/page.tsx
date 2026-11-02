@@ -1,11 +1,13 @@
 import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
+import { CallToAction } from "@/components/ui/CallToAction";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { ProjectCard } from "@/features/projects/ProjectCard";
 import type { Project } from "@portfolio/contracts";
 import { getProjects } from "@/features/projects/api";
+import { ProjectGrid } from "@/features/projects/ProjectGrid";
 
 export const metadata = { title: "Projects" };
+
 export default async function ProjectsPage() {
   let projects: Project[] | null = null;
   try {
@@ -21,15 +23,10 @@ export default async function ProjectsPage() {
         title="Things I've built"
         intro="Each project has a case study: the problem, what I built, the architecture, the trade-offs I made and the results."
       />
-      {projects ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {projects.map((project) => (
-            <ProjectCard key={project.slug} project={project} heading="h2" />
-          ))}
-        </div>
-      ) : (
-        <ApiErrorNotice what="projects" />
-      )}
+      {projects ? <ProjectGrid projects={projects} /> : <ApiErrorNotice what="projects" />}
+      <div className="mt-24">
+        <CallToAction title="Want the details behind a project?" />
+      </div>
     </Container>
   );
 }

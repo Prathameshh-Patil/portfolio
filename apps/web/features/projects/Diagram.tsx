@@ -31,10 +31,9 @@ export function Diagram({ title, nodes, edges }: { title: string; nodes: Diagram
   const height = (Math.max(...nodes.map((n) => n.row)) + 1) * CELL_H;
 
   return (
-    // On large screens the figure is a little wider than the text column, so labels stay readable.
-    <figure className="my-8 lg:-mx-16">
+    <figure className="my-10">
       {/* On narrow screens the figure scrolls sideways instead of shrinking the text to unreadable sizes. */}
-      <div className="overflow-x-auto rounded-lg border border-border bg-surface p-4">
+      <div className="card overflow-x-auto p-4 sm:p-6">
         <svg viewBox={`0 0 ${width} ${height}`} className="mx-auto min-w-[560px]" role="img" aria-label={title}>
           <defs>
             <marker id={markerId} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

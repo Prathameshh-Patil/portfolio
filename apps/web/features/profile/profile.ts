@@ -23,6 +23,9 @@ export const profile = {
 
 export const resumeFile = "/resume/Prathamesh_Patil_Resume.pdf";
 
+// This website's own source code (public).
+export const siteRepo = "https://github.com/Prathameshh-Patil/portfolio";
+
 export type Experience = {
   role: string;
   company: string;

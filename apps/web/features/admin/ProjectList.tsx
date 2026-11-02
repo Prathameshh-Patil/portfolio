@@ -41,7 +41,7 @@ export function ProjectList() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
+          <h1 className="text-3xl font-semibold tracking-[-0.02em]">Projects</h1>
           <p className="mt-1 text-sm text-muted">The public list shows featured projects first, then this order.</p>
         </div>
         <Link href="/admin/projects/new" className={primaryButtonClass}>New project</Link>
@@ -54,7 +54,7 @@ export function ProjectList() {
 
         <ol className="space-y-3">
           {projects?.map((p, i) => (
-            <li key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-lg border border-border bg-surface p-4">
+            <li key={p.id} className="card flex flex-wrap items-center gap-x-4 gap-y-3 p-4">
               <div className="flex flex-col gap-1">
                 <button type="button" disabled={busy || i === 0} onClick={() => move(projects, i, -1)} aria-label={`Move ${p.title} up`} className="rounded px-2 text-muted hover:text-accent disabled:opacity-30">
                   ↑
@@ -67,8 +67,8 @@ export function ProjectList() {
               <div className="min-w-0 flex-1">
                 <p className="font-medium">
                   {p.title}
-                  {p.featured && <span className="ml-2 rounded bg-accent-soft px-1.5 py-0.5 text-xs font-normal">Featured</span>}
-                  {!p.published && <span className="ml-2 rounded border border-border px-1.5 py-0.5 text-xs font-normal text-muted">Draft</span>}
+                  {p.featured && <span className="ml-2 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-normal text-accent">Featured</span>}
+                  {!p.published && <span className="ml-2 rounded-full border border-border px-2 py-0.5 text-xs font-normal text-muted">Draft</span>}
                 </p>
                 <p className="mt-0.5 font-mono text-xs text-muted">
                   /{p.slug} · {p.views.toLocaleString("en-IN")} views

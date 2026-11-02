@@ -5,7 +5,8 @@ import { z } from "zod";
 import { ApiError } from "@/lib/api-client";
 import { sendContact } from "./api";
 import { contactSchema, type ContactField } from "@/features/contact/schema";
-import { inputClass } from "@/components/ui/form";
+import { inputClass, primaryButtonClass } from "@/components/ui/form";
+import { Check } from "@/components/ui/icons";
 
 type Status = "idle" | "sending" | "sent" | "error";
 type Errors = Partial<Record<ContactField, string>>;
@@ -72,8 +73,11 @@ export function ContactForm() {
 
   if (status === "sent") {
     return (
-      <div role="status" className="rounded-lg border border-accent bg-accent-soft p-6">
-        <p className="font-semibold">Thanks, your message was sent.</p>
+      <div role="status" className="rounded-2xl border border-accent/30 bg-accent-soft p-8 text-center">
+        <span aria-hidden="true" className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-accent text-accent-fg">
+          <Check className="h-6 w-6" />
+        </span>
+        <p className="mt-4 text-lg font-semibold">Thanks, your message was sent.</p>
         <p className="mt-2 text-sm text-muted">I&apos;ll reply to the email address you gave.</p>
         <button
           type="button"
@@ -94,7 +98,7 @@ export function ContactForm() {
       </label>
       {input}
       {errors[name] && (
-        <p id={`${name}-error`} className="mt-1.5 text-sm text-red-700 dark:text-red-400">
+        <p id={`${name}-error`} className="mt-1.5 text-sm text-danger">
           {errors[name]}
         </p>
       )}
@@ -115,8 +119,10 @@ export function ContactForm() {
     // method="post": if someone submits before JavaScript loads, the browser's fallback must not
     // put their name, email and message into the URL (which a GET would do).
     <form ref={formRef} onSubmit={handleSubmit} method="post" noValidate className="space-y-5">
-      {field("name", "Name", <input type="text" autoComplete="name" maxLength={100} {...a11y("name")} />)}
-      {field("email", "Email", <input type="email" autoComplete="email" maxLength={200} {...a11y("email")} />)}
+      <div className="grid gap-5 sm:grid-cols-2">
+        {field("name", "Name", <input type="text" autoComplete="name" maxLength={100} {...a11y("name")} />)}
+        {field("email", "Email", <input type="email" autoComplete="email" maxLength={200} {...a11y("email")} />)}
+      </div>
       {field("subject", "Subject", <input type="text" maxLength={150} {...a11y("subject")} />, "(optional)")}
       {field("body", "Message", <textarea rows={6} maxLength={5000} {...a11y("body")} />)}
 
@@ -127,7 +133,7 @@ export function ContactForm() {
       </div>
 
       {formError && (
-        <p role="alert" className="rounded-md border border-red-600/40 px-4 py-3 text-sm text-red-700 dark:border-red-400/40 dark:text-red-400">
+        <p role="alert" className="rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
           {formError}
         </p>
       )}
@@ -135,7 +141,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="inline-flex items-center rounded-md bg-accent px-5 py-2.5 text-sm font-medium text-accent-fg transition-colors hover:bg-accent-hover disabled:cursor-wait disabled:opacity-70"
+        className={`${primaryButtonClass} w-full sm:w-auto`}
       >
         {status === "sending" ? "Sending…" : "Send message"}
       </button>

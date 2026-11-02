@@ -45,8 +45,8 @@ export function MessageInbox() {
   return (
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Messages</h1>
-        <div className="flex gap-1 rounded-md border border-border p-1 text-sm" role="group" aria-label="Filter messages">
+        <h1 className="text-3xl font-semibold tracking-[-0.02em]">Messages</h1>
+        <div className="flex gap-1 rounded-full border border-border bg-surface p-1 text-sm shadow-[var(--shadow-sm)]" role="group" aria-label="Filter messages">
           {[
             { label: "All", unread: false },
             { label: "Unread", unread: true },
@@ -56,7 +56,7 @@ export function MessageInbox() {
               type="button"
               aria-pressed={unreadOnly === f.unread}
               onClick={() => go({ page: 1, unread: f.unread })}
-              className="rounded px-3 py-1 text-muted aria-pressed:bg-accent-soft aria-pressed:text-text"
+              className="rounded-full px-3.5 py-1 text-muted aria-pressed:bg-text aria-pressed:text-bg"
             >
               {f.label}
             </button>
@@ -68,7 +68,7 @@ export function MessageInbox() {
         <FormError message={error ?? actionError} />
         {!data && !error && <p className="text-sm text-muted">Loading…</p>}
         {data?.data.length === 0 && (
-          <p className="rounded-lg border border-dashed border-border px-5 py-10 text-center text-sm text-muted">
+          <p className="rounded-2xl border border-dashed border-border-strong px-5 py-12 text-center text-sm text-muted">
             {page > 1 ? (
               <>
                 Nothing on this page. <button type="button" className="underline" onClick={() => go({ page: 1 })}>Go to page 1</button>
@@ -84,13 +84,13 @@ export function MessageInbox() {
         {data?.data.map((m) => (
           <article
             key={m.id}
-            className={`rounded-lg border bg-surface p-5 ${m.isRead ? "border-border" : "border-accent"}`}
+            className={`card p-5 sm:p-6 ${m.isRead ? "" : "!border-accent/50"}`}
             aria-label={`Message from ${m.name}${m.isRead ? "" : " (unread)"}`}
           >
             <header className="flex flex-wrap items-start justify-between gap-2">
               <div>
                 <p className="font-medium">
-                  {!m.isRead && <span className="mr-2 rounded bg-accent px-1.5 py-0.5 text-xs text-accent-fg">New</span>}
+                  {!m.isRead && <span className="mr-2 rounded-full bg-accent px-2 py-0.5 text-xs text-accent-fg">New</span>}
                   {m.name} <span className="font-normal text-muted">&lt;{m.email}&gt;</span>
                 </p>
                 {m.subject && <p className="mt-1 text-sm">{m.subject}</p>}

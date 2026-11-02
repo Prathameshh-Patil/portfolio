@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Folder, Grid, Inbox, LogOut } from "@/components/ui/icons";
 import { setToken } from "@/features/admin/token";
 import { useAdminToken } from "@/features/admin/use-admin";
 
 const nav = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/messages", label: "Messages" },
-  { href: "/admin/projects", label: "Projects" },
+  { href: "/admin", label: "Dashboard", icon: Grid },
+  { href: "/admin/messages", label: "Messages", icon: Inbox },
+  { href: "/admin/projects", label: "Projects", icon: Folder },
 ];
 
 // Guards every admin page: without a token you are sent to the login page.
@@ -31,18 +32,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const isActive = (href: string) => (href === "/admin" ? pathname === href : pathname.startsWith(href));
 
   return (
-    <div className="pb-10 pt-8">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+    <div className="grid gap-8 pb-10 pt-8 md:grid-cols-[200px_minmax(0,1fr)] md:gap-10">
+      <aside className="md:sticky md:top-24 md:self-start">
+        <p className="eyebrow mb-3 hidden !text-subtle md:block">Admin</p>
         <nav aria-label="Admin">
-          <ul className="flex flex-wrap gap-1">
-            {nav.map((item) => (
-              <li key={item.href}>
+          <ul className="flex gap-1 overflow-x-auto md:flex-col">
+            {nav.map(({ href, label, icon: Icon }) => (
+              <li key={href}>
                 <Link
-                  href={item.href}
-                  aria-current={isActive(item.href) ? "page" : undefined}
-                  className="block rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-text aria-[current=page]:bg-accent-soft aria-[current=page]:text-text"
+                  href={href}
+                  aria-current={isActive(href) ? "page" : undefined}
+                  className="flex items-center gap-2.5 whitespace-nowrap rounded-xl px-3 py-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-text aria-[current=page]:bg-surface aria-[current=page]:font-medium aria-[current=page]:text-text aria-[current=page]:shadow-[var(--shadow-sm)] aria-[current=page]:ring-1 aria-[current=page]:ring-border"
                 >
-                  {item.label}
+                  <Icon className="h-4 w-4" />
+                  {label}
                 </Link>
               </li>
             ))}
@@ -53,12 +56,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           onClick={() => {
             setToken(null); // the effect above then redirects to the login page
           }}
-          className="rounded-md px-3 py-1.5 text-sm text-muted transition-colors hover:text-text"
+          className="mt-2 flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-text md:mt-6"
         >
-          Log out
+          <LogOut className="h-4 w-4" /> Log out
         </button>
-      </div>
-      <div className="pt-8">{children}</div>
+      </aside>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }
