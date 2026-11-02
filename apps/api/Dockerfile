@@ -5,7 +5,10 @@ FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
-RUN npm ci -w apps/api
+COPY packages/contracts packages/contracts
+# --ignore-scripts: the root postinstall would build the contracts before TypeScript is ready; it's done next.
+RUN npm ci -w apps/api -w @portfolio/contracts --ignore-scripts
+RUN npm run build -w @portfolio/contracts
 COPY apps/api/tsconfig.json apps/api/
 COPY apps/api/src apps/api/src
 RUN npm run build -w apps/api
@@ -16,7 +19,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
-RUN npm ci -w apps/api --omit=dev && npm cache clean --force
+COPY packages/contracts/package.json packages/contracts/
+RUN npm ci -w apps/api --omit=dev --ignore-scripts && npm cache clean --force
+# The shared contracts package, compiled: the API imports its schemas at runtime.
+COPY --from=build /app/packages/contracts/dist packages/contracts/dist
 COPY --from=build /app/apps/api/dist apps/api/dist
 COPY apps/api/drizzle apps/api/drizzle
 WORKDIR /app/apps/api

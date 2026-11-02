@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { LoginForm } from "@/components/admin/LoginForm";
+import { LoginForm } from "@/features/admin/LoginForm";
 
 export const metadata = { title: "Log in" };
 

@@ -1,8 +1,9 @@
-import { ApiErrorNotice } from "@/components/ApiErrorNotice";
-import { Container } from "@/components/Container";
-import { PageHeader } from "@/components/PageHeader";
-import { ProjectCard } from "@/components/ProjectCard";
-import { getProjects, type Project } from "@/lib/api";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
+import { Container } from "@/components/ui/Container";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ProjectCard } from "@/features/projects/ProjectCard";
+import type { Project } from "@portfolio/contracts";
+import { getProjects } from "@/features/projects/api";
 
 export const metadata = { title: "Projects" };
 export default async function ProjectsPage() {

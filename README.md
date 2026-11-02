@@ -21,21 +21,48 @@ flowchart LR
 - **db** is plain MySQL. The api container applies migrations and seeds the four resume projects when it starts.
 
 ```
+packages/
+  contracts/           the API contract: Zod schemas + inferred types, used by both apps
 apps/
-  api/                 Express API (see apps/api/README.md for endpoints)
-    src/routes/        public.ts, auth.ts, admin.ts
+  api/                 Express API (see apps/api/README.md for endpoints and layers)
+    src/modules/       one folder per feature: projects, messages, auth, dashboard, health, docs
+    src/core/          errors, JWT middleware, request ids
     src/db/            schema, migrations runner, seed
     drizzle/           SQL migrations
-    tests/             API tests against a throwaway MySQL database per test file
+    tests/unit/        services tested with in-memory fakes (no database)
+    tests/integration/ the HTTP API against a throwaway MySQL database per test file
   web/                 Next.js website
-    app/               pages: home, projects, experience, about, resume, contact, admin
-    components/        UI; components/admin/ is the admin panel
+    app/               routes only: home, projects, experience, about, resume, contact, admin
+    features/          one folder per feature: projects, contact, admin, profile (components + API calls)
+    components/ui/     shared building blocks: Container, ButtonLink, form fields, icons
+    components/layout/ header, footer, theme toggle
     content/projects/  one MDX case study per project, named by slug
-    lib/               API client, env checks, profile data, card highlights
+    lib/               the HTTP client and env checks
     e2e/               Playwright tests and a mock API
 scripts/demo.sh        resets the local stack to a clean demo state
 deploy/aws/            AWS SAM template and deploy script for the API (Lambda + API Gateway + RDS MySQL)
 ```
+
+**How the code is layered**
+
+```mermaid
+flowchart LR
+    C["packages/contracts<br/>Zod schemas + types"] --> WF
+    C --> R
+    subgraph web
+      P["app/ (routes)"] --> WF["features/*<br/>components + api.ts"] --> HC["lib/api-client"]
+    end
+    subgraph api
+      R["routes<br/>HTTP only"] --> S["services<br/>rules"] --> RP["repositories<br/>SQL"]
+    end
+    HC -- "HTTP/JSON" --> R
+    RP --> DB[("MySQL")]
+```
+
+- **One contract, two apps.** The API validates requests with the schemas in `packages/contracts`, and the website types its API calls with the types inferred from them. Change a field there and both apps fail to compile until they agree. The website's forms reuse the same limits with friendlier messages.
+- **Feature modules.** Everything about one feature sits in one folder, on both sides. Adding a feature means adding a folder and one line where it's wired up, not editing files all over the codebase.
+- **Layers in the API.** Routes only deal with HTTP; services hold the rules and throw errors like `NotFoundError` without knowing about status codes; repositories are the only code that writes SQL. Services get their repository passed in, so unit tests swap in an in-memory fake.
+- **One composition root.** `apps/api/src/app.ts` is the only file that knows every module: it builds the repositories and services and mounts the routes.
 
 ## Run it
 
@@ -89,7 +116,8 @@ It prints the API URL. Set it as `NEXT_PUBLIC_API_URL` and `API_URL_INTERNAL` in
 ```bash
 npm run typecheck   # both apps
 npm run lint        # both apps
-npm test            # 22 API tests (Vitest + supertest) against MySQL: run `docker compose up -d db` first
+npm test            # 33 API tests: unit (no database) + integration against MySQL; run `docker compose up -d db` first
+npm run test:unit -w apps/api   # only the unit tests, no database needed
 npm run test:e2e    # 13 Playwright tests against the production build and a mock API
 ```
 

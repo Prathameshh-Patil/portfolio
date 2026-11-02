@@ -1,14 +1,15 @@
-import { ApiErrorNotice } from "@/components/ApiErrorNotice";
-import { ButtonLink } from "@/components/ButtonLink";
-import { Container } from "@/components/Container";
-import { ExperienceList } from "@/components/ExperienceList";
-import { HeroBackdrop } from "@/components/HeroBackdrop";
-import { Download, GitHub, LinkedIn, Mail } from "@/components/icons";
-import { ProjectCard } from "@/components/ProjectCard";
-import { SectionHeading } from "@/components/SectionHeading";
-import { StatusPill } from "@/components/StatusPill";
-import { getProjects, type Project } from "@/lib/api";
-import { coreStack, education, experience, profile, resumeFile } from "@/lib/profile";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Container } from "@/components/ui/Container";
+import { ExperienceList } from "@/features/profile/ExperienceList";
+import { HeroBackdrop } from "@/components/layout/HeroBackdrop";
+import { Download, GitHub, LinkedIn, Mail } from "@/components/ui/icons";
+import { ProjectCard } from "@/features/projects/ProjectCard";
+import { SectionHeading } from "@/components/ui/SectionHeading";
+import { StatusPill } from "@/components/ui/StatusPill";
+import type { Project } from "@portfolio/contracts";
+import { getProjects } from "@/features/projects/api";
+import { coreStack, education, experience, profile, resumeFile } from "@/features/profile/profile";
 
 // Staggered entrance: each block fades up a little after the previous one. The animation class is
 // motion-safe:, so people who ask for reduced motion see everything immediately.

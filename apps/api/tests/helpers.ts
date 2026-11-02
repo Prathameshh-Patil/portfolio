@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import request from "supertest";
 import { createApp } from "../src/app.js";
 import { createDb } from "../src/db/client.js";
-import type { Mailer } from "../src/services/email.js";
+import type { Mailer } from "../src/integrations/email.js";
 
 // A MySQL server where the tests may create databases. Default: the compose `db` service as root.
 const serverUrl = process.env.TEST_DATABASE_URL ?? "mysql://root:portfolio@localhost:3307";

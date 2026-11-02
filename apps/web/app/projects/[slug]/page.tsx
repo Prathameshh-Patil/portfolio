@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { ApiErrorNotice } from "@/components/ApiErrorNotice";
-import { ButtonLink } from "@/components/ButtonLink";
-import { Container } from "@/components/Container";
-import { ViewCounter } from "@/components/ViewCounter";
-import { ArrowUpRight, GitHub } from "@/components/icons";
-import { ApiError, getProject, type Project } from "@/lib/api";
+import { ApiErrorNotice } from "@/components/ui/ApiErrorNotice";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Container } from "@/components/ui/Container";
+import { ViewCounter } from "@/features/projects/ViewCounter";
+import { ArrowUpRight, GitHub } from "@/components/ui/icons";
+import type { Project } from "@portfolio/contracts";
+import { ApiError } from "@/lib/api-client";
+import { getProject } from "@/features/projects/api";
 
 type Props = { params: Promise<{ slug: string }> };
 

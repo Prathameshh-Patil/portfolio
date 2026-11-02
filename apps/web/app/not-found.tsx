@@ -1,5 +1,5 @@
-import { ButtonLink } from "@/components/ButtonLink";
-import { Container } from "@/components/Container";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Container } from "@/components/ui/Container";
 
 export const metadata = { title: "Page not found" };
 

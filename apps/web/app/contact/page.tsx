@@ -1,7 +1,7 @@
-import { Container } from "@/components/Container";
-import { ContactForm } from "@/components/ContactForm";
-import { PageHeader } from "@/components/PageHeader";
-import { profile } from "@/lib/profile";
+import { Container } from "@/components/ui/Container";
+import { ContactForm } from "@/features/contact/ContactForm";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { profile } from "@/features/profile/profile";
 
 export const metadata = { title: "Contact" };
 

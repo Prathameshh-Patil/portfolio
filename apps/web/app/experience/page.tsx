@@ -1,7 +1,7 @@
-import { Container } from "@/components/Container";
-import { ExperienceList } from "@/components/ExperienceList";
-import { PageHeader } from "@/components/PageHeader";
-import { experience } from "@/lib/profile";
+import { Container } from "@/components/ui/Container";
+import { ExperienceList } from "@/features/profile/ExperienceList";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { experience } from "@/features/profile/profile";
 
 export const metadata = { title: "Experience" };
 

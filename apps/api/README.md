@@ -14,30 +14,32 @@ Next.js frontend ──HTTP/JSON──▶ Express API ──Drizzle──▶ MyS
 
 ```
 src/
-  app.ts            builds the Express app (middleware + routes); tests use it directly
+  app.ts            composition root: builds every repository and service, mounts the routes
   server.ts         starts the server, graceful shutdown
   lambda.ts         AWS Lambda entry point (same app, see deploy/aws/)
-  schemas.ts        every request and response shape (Zod)
-  openapi.ts        OpenAPI 3.1 document built from schemas.ts
-  docs.ts           /openapi.json and the Swagger UI page at /docs
   config.ts         validates environment variables at startup
-  db/schema.ts      tables: projects, messages
-  db/client.ts      MySQL connection pool (UTC, TLS set by the URL)
-  db/migrate.ts     applies SQL migrations from ./drizzle
-  db/seed.ts        inserts my resume projects
-  routes/public.ts  projects, view counter, contact form
-  routes/auth.ts    admin login -> JWT
-  routes/admin.ts   manage messages and projects, dashboard stats
-  middleware/auth.ts  JWT check for admin routes
-  lib/errors.ts     one error handler that turns every error into JSON
-  services/email.ts  Resend notification (skipped if not configured)
+  core/             errors (+ the one error handler), JWT middleware, request ids
+  db/               schema, MySQL pool (UTC, TLS set by the URL), migrate, seed, DB error types
+  integrations/     email through Resend (skipped if not configured)
+  modules/
+    projects/       projects.repository.ts (SQL) -> projects.service.ts (rules) -> projects.routes.ts (HTTP)
+    messages/       same three layers: contact form + admin inbox
+    auth/           login service + route
+    dashboard/      admin stats (reads from both repositories)
+    health/         GET /health
+    docs/           OpenAPI document + Swagger UI
 scripts/bench-indexes.ts  measures what the indexes buy (see below)
-tests/              API tests, each file on a throwaway MySQL database
+tests/unit/         services with in-memory fakes, config; no database
+tests/integration/  the HTTP API on a throwaway MySQL database per test file
 ```
+
+Request and response schemas live in [`packages/contracts`](../../packages/contracts), shared with the website.
+
+**Request flow, e.g. `PATCH /api/admin/projects/3`:** `requireAdmin` checks the JWT → `projects.routes.ts` parses the id and body with the contract schemas → `projects.service.ts` rejects an empty update, calls the repository, and turns a duplicate slug into `ConflictError` → `projects.repository.ts` runs the UPDATE and reads the row back → the error handler (if anything threw) picks the status code. Every log line for the request carries its `X-Request-Id`.
 
 ## API
 
-**Interactive docs:** `/docs` (Swagger UI) and the raw OpenAPI 3.1 document at `/openapi.json`. Both are built from `src/schemas.ts`, the same Zod schemas the routes validate with, and `tests/docs.test.ts` checks real responses against them.
+**Interactive docs:** `/docs` (Swagger UI) and the raw OpenAPI 3.1 document at `/openapi.json`. Both are built from `packages/contracts`, the same Zod schemas the routes validate with, and `tests/integration/docs.test.ts` checks real responses against them.
 
 | Method | Path | Auth | What it does |
 |---|---|---|---|
@@ -67,7 +69,8 @@ Admin requests send `Authorization: Bearer <token>`. Errors always look like `{ 
 - **Spam protection.** Rate limit on the contact form plus a honeypot field (`website`) that only bots fill in. Bot submissions get a fake success and are not saved.
 - **Email can't break the form.** The message is saved first; the notification email is sent afterwards and a failure is only logged.
 - **Safe errors.** Unexpected errors are logged in full but the client only sees "Internal server error". The `Authorization` header is redacted from logs.
-- **Testable by design.** `createApp()` takes its dependencies (database, mailer). Each test file gets its own new MySQL database with the real migrations applied, and drops it at the end.
+- **Testable by design.** `createApp()` takes its dependencies (database, mailer). Services get their repository passed in, so unit tests use in-memory fakes; integration tests give each file its own new MySQL database with the real migrations applied, and drop it at the end.
+- **Traceable requests.** Every request gets an `X-Request-Id` (or keeps the one a gateway sent), and it is on every log line for that request.
 
 ## Run locally
 
@@ -81,7 +84,8 @@ npm run dev -w apps/api          # http://localhost:4000, reads ../../.env
 ```
 
 ```bash
-npm test -w apps/api             # 22 API tests; needs the compose db (or TEST_DATABASE_URL)
+npm test -w apps/api             # 33 tests; needs the compose db (or TEST_DATABASE_URL)
+npm run test:unit -w apps/api    # unit tests only, no database
 npm run typecheck -w apps/api
 npm run lint -w apps/api
 ```

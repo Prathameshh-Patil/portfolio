@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AdminShell } from "@/components/admin/AdminShell";
-import { Container } from "@/components/Container";
+import { AdminShell } from "@/features/admin/AdminShell";
+import { Container } from "@/components/ui/Container";
 
 // noindex: admin pages should never appear in search results, even though this site isn't public.
 export const metadata: Metadata = {

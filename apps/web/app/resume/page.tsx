@@ -1,8 +1,8 @@
-import { ButtonLink } from "@/components/ButtonLink";
-import { Container } from "@/components/Container";
-import { PageHeader } from "@/components/PageHeader";
-import { ArrowUpRight, Download } from "@/components/icons";
-import { resumeFile } from "@/lib/profile";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { Container } from "@/components/ui/Container";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ArrowUpRight, Download } from "@/components/ui/icons";
+import { resumeFile } from "@/features/profile/profile";
 
 export const metadata = { title: "Resume" };
 

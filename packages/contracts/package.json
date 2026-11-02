@@ -1,0 +1,25 @@
+{
+  "name": "@portfolio/contracts",
+  "version": "1.0.0",
+  "description": "The API contract shared by the API and the website: Zod schemas and the types inferred from them",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "~6.0",
+    "zod": "^4.6.6"
+  }
+}

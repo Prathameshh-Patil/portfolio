@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { MessageInbox } from "@/components/admin/MessageInbox";
+import { MessageInbox } from "@/features/admin/MessageInbox";
 
 export const metadata = { title: "Messages" };
 
