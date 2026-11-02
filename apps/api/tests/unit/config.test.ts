@@ -9,6 +9,11 @@ const required = {
 };
 
 describe("config", () => {
+  it("prefers MYSQL_URL over DATABASE_URL", () => {
+    const config = loadConfig({ ...required, DATABASE_URL: "postgresql://neon/db", MYSQL_URL: "mysql://aiven/db" });
+    expect(config.DATABASE_URL).toBe("mysql://aiven/db");
+  });
+
   it("treats empty optional variables as unset (KEY= in .env)", () => {
     const config = loadConfig({ ...required, RESEND_API_KEY: "", CONTACT_TO_EMAIL: "", CONTACT_FROM_EMAIL: "" });
     expect(config.CONTACT_TO_EMAIL).toBeUndefined();

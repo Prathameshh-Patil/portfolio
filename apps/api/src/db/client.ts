@@ -10,6 +10,11 @@ export type Db = MySql2Database<typeof schema>;
 // local ones have no ssl parameter.
 function connectionOptions(databaseUrl: string): mysql.PoolOptions {
   const url = new URL(databaseUrl);
+  // A Postgres URL here (left over from an old host) would otherwise fail later with a confusing timeout.
+  // The message names the scheme, host and port, never the password.
+  if (url.protocol !== "mysql:") {
+    throw new Error(`DATABASE_URL must be a mysql:// URL, got ${url.protocol}//${url.hostname}${url.port ? `:${url.port}` : ""}`);
+  }
   // Hosted MySQL URLs often carry ?ssl-mode=REQUIRED, a MySQL CLI option the driver doesn't know.
   url.searchParams.delete("ssl-mode");
   const ca = process.env.DATABASE_CA?.trim();

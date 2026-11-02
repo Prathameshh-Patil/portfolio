@@ -21,6 +21,9 @@ export type Config = z.infer<typeof envSchema>;
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   // `KEY=` in an env file gives "", not undefined. Treat it as unset so optional fields stay optional.
   const withoutEmpty = Object.fromEntries(Object.entries(env).filter(([, value]) => value !== ""));
+  // MYSQL_URL wins over DATABASE_URL: hosting platforms inject DATABASE_URL from connected (Postgres)
+  // stores, and a name no such integration sets can't be overridden by one.
+  withoutEmpty.DATABASE_URL = withoutEmpty.MYSQL_URL ?? withoutEmpty.DATABASE_URL;
   const parsed = envSchema.safeParse(withoutEmpty);
   if (!parsed.success) {
     console.error("Invalid environment variables:", z.prettifyError(parsed.error));

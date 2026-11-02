@@ -49,8 +49,9 @@ const seed = [
   },
 ];
 
-const url = process.env.DATABASE_URL;
-if (!url) throw new Error("DATABASE_URL is not set");
+// MYSQL_URL wins over DATABASE_URL, as in config.ts.
+const url = process.env.MYSQL_URL || process.env.DATABASE_URL;
+if (!url) throw new Error("MYSQL_URL or DATABASE_URL must be set");
 
 const { db, pool } = createDb(url);
 // A no-op update on a duplicate slug: existing projects (maybe edited in the admin panel) stay as they are.
