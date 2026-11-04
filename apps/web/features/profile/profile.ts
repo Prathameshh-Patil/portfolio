@@ -4,7 +4,7 @@ export const profile = {
   name: "Prathamesh Patil",
   location: "Bengaluru, Karnataka, India",
   city: "Bengaluru, India",
-  email: "prish.tmesh@gmail.com",
+  email: "prathameshpatil330@gmail.com",
   github: "https://github.com/Prathameshh-Patil",
   linkedin: "https://www.linkedin.com/in/prathamesh-patil-1872442a3",
   headline: "Full-stack engineer who builds AI-backed products, from database to deployed app.",
